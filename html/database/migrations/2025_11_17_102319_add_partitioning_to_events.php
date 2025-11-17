@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -58,8 +57,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('events', function (Blueprint $table) {
-            //
-        });
+
+        // Drop all partitions
+        $partitions = DB::select("
+            SELECT tablename 
+            FROM pg_tables 
+            WHERE tablename LIKE 'events_%'
+        ");
+
+        foreach ($partitions as $partition) {
+            DB::statement("DROP TABLE IF EXISTS {$partition->tablename}");
+        }
+
+        // drop the main events table
+        Schema::dropIfExists('events');
     }
 };
