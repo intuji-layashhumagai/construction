@@ -52,6 +52,8 @@ return new class extends Migration
         echo "Created partition: {$partitionName}\n";
     }
 
+    // todo: Auto manage the partation before partation is required
+
     /**
      * Reverse the migrations.
      */
