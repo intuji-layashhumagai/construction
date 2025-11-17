@@ -13,24 +13,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::dropIfExists('events');
-        Schema::table('events', function (Blueprint $table) {
-            $table->uuid('id')->primary();
 
-            $table->string('event_type', 100);
-            $table->uuid('device_id');
-            $table->uuid('worker_id');
 
-            $table->jsonb('event_data');
-
-            $table->bigInteger('sequence_number');
-            $table->timestamp('server_created_at')->useCurrent();
-
-            $table->timestamps();
-
-            // Basic indexes
-            $table->index(['worker_id']);
-            $table->index(['device_id', 'sequence_number']);
-        });
+        DB::statement("
+            CREATE TABLE events (
+                id UUID NOT NULL,
+                event_type VARCHAR(100) NOT NULL,
+                device_id UUID NOT NULL,
+                worker_id UUID NOT NULL,
+                event_data JSONB NOT NULL,
+                sequence_number BIGINT NOT NULL,
+                server_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                created_at TIMESTAMP NULL,
+                updated_at TIMESTAMP NULL,
+                PRIMARY KEY (id, server_created_at)
+            ) PARTITION BY RANGE (server_created_at)
+        ");
 
         $this->createPartition(date('Y-m-01'));
     }
