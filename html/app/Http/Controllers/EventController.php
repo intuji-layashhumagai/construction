@@ -9,10 +9,8 @@ use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-
     public function __construct(private readonly EventService $eventService) {}
-        
-    
+
     /**
      * Display a listing of the resource.
      */
@@ -26,8 +24,8 @@ class EventController extends Controller
      */
     public function store(StoreEventRequest $request)
     {
-   
-       return $this->eventService->storeEvent($request->validated());
+
+        return $this->eventService->storeEvent($request->validated());
     }
 
     /**

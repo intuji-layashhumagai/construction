@@ -9,13 +9,10 @@ class EventService
     /**
      * Create a new class instance.
      */
-    public function __construct()
-    {
-        
-    }
+    public function __construct() {}
 
     public function storeEvent(array $eventData)
     {
-       return EventStoreAction::handle($eventData);
+        return EventStoreAction::handle($eventData);
     }
 }

@@ -21,7 +21,7 @@ class StoreEventRequest extends FormRequest
      */
     public function rules(): array
     {
-       return [
+        return [
             'entity_type' => 'required|string|max:50',
             'entity_id' => 'required|uuid',
             'event_type' => 'required|string|max:100',

@@ -10,6 +10,7 @@ class EventStore extends Model
 {
     use HasFactory;
     use HasUuids;
+
     protected $table = 'event_store';
 
     protected $fillable = [
