@@ -2,13 +2,13 @@
 
 namespace App\Actions\Event;
 
-use App\Models\EventStore;
+use App\Models\Event;
 
 final class StoreAction
 {
     public static function handle(array $request)
     {
 
-        return EventStore::create($request);
+        return Event::create($request);
     }
 }
