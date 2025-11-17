@@ -32,6 +32,13 @@ return new class extends Migration
         $this->createPartition(date('Y-m-01'));
     }
 
+    /**
+     * Creates a new partition for the events table.
+     * The partition is named events_{Y_m} and spans from the given month start to the next month.
+     * If the partition already exists, it is skipped.
+     *
+     * @param  string  $monthStart  The start of the month for the partition in the format Y-m-d.
+     */
     private function createPartition(string $monthStart)
     {
         $partitionName = 'events_'.date('Y_m', strtotime($monthStart));
