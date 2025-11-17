@@ -12,7 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('event_store', function (Blueprint $table) {
-            $table->id();
+            $table->uuid()->primary('id');
+            
+            $table->string('event_type', 100);
+            $table->uuid('device_id');
+            $table->uuid('worker_id');
+
+            $table->string('event_type',100);
+            $table->jsonb('event_data');
+
+
             $table->timestamps();
         });
     }
