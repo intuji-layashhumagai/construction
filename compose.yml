@@ -1,0 +1,82 @@
+# Networks
+networks:
+  csm-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  csm-postgres-data:
+    name: kScfWrF8PUtK0e9FdGtB
+  csm-redis-data:
+    name: 4TWaJPJdILWuVDQ6Nctz
+
+# Services
+services:
+
+  # Redis for queues, sync states, caching
+  csm-redis:
+    image: redis:8.0
+    container_name: csm-redis
+    ports:
+      - '6379:6379'
+    command: ["redis-server", "--requirepass", "supersecretpassword"]
+    volumes:
+      - csm-redis-data:/data
+    networks:
+      - csm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "supersecretpassword", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # PostgreSQL for event store, materialized views, rules, transactions
+  csm-postgres:
+    image: postgres:17.4
+    container_name: csm-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: csm
+      POSTGRES_USER: csm_user
+      POSTGRES_PASSWORD: supersecretpassword
+    volumes:
+      - csm-postgres-data:/var/lib/postgresql/data
+    networks:
+      - csm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U csm_user -d csm"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Laravel + Nginx API server
+  csm-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: csm-api
+    working_dir: /var/www/html
+    ports:
+      - '8080:80'
+    volumes:
+      - ./html/:/var/www/html
+    environment:
+      WEB_DOCUMENT_ROOT: /var/www/html/public
+      COMPOSER_VERSION: 2
+      COMPOSER_ALLOW_SUPERUSER: 1
+    depends_on:
+      csm-postgres:
+        condition: service_healthy
+      csm-redis:
+        condition: service_healthy
+    networks:
+      - csm-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
