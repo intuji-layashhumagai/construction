@@ -1,0 +1,45 @@
+### Vendor directories
+/.sonarlint/
+.yarn/
+node_modules/
+vendor/
+
+### Build directories
+build/
+bundle/
+dist/
+output/
+
+
+### Visual Studio Code
+/.vscode/*
+!/.vscode/*.json
+
+### macOS template
+.DS_Store
+._*
+
+### Linux template
+*~
+.Trash-*
+.directory
+.fuse_hidden*
+.nfs*
+
+### Editor files
+*.cvsignore
+*.njsproj
+*.ntvs*
+*.sln
+*.suo
+*.sw?
+
+### Generated files
+*.cache
+*.key
+*.log
+.env
+public/storage
+composer.phar
+yarn.lock
+
