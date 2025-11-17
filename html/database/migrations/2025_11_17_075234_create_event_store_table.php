@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_store', function (Blueprint $table) {
+        Schema::create('events', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
             $table->string('event_type', 100);
@@ -35,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_store');
+        Schema::dropIfExists('events');
     }
 };
