@@ -15,5 +15,6 @@ class EventStore extends Model
         'event_type',
         'event_data',
         'device_id',
+        'sequence_number',
     ];
 }

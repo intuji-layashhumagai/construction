@@ -18,8 +18,9 @@ return new class extends Migration
             $table->uuid('device_id');
             $table->uuid('worker_id');
 
-            $table->string('event_type', 100);
             $table->jsonb('event_data');
+
+            $table->bigInteger('sequence_number');
 
             $table->timestamps();
         });
