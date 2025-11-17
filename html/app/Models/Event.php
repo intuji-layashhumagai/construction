@@ -18,7 +18,7 @@ class Event extends Model
         'event_data',
         'device_id',
         'sequence_number',
-        'server_created_at'
+        'server_created_at',
     ];
 
     protected function casts(): array
