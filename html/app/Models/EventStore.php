@@ -17,4 +17,11 @@ class EventStore extends Model
         'device_id',
         'sequence_number',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'event_data' => 'array',
+        ];
+    }
 }
