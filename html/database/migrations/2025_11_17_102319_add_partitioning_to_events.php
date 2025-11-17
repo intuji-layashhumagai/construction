@@ -14,8 +14,7 @@ return new class extends Migration
     {
         Schema::dropIfExists('events');
 
-
-        DB::statement("
+        DB::statement('
             CREATE TABLE events (
                 id UUID NOT NULL,
                 event_type VARCHAR(100) NOT NULL,
@@ -28,7 +27,7 @@ return new class extends Migration
                 updated_at TIMESTAMP NULL,
                 PRIMARY KEY (id, server_created_at)
             ) PARTITION BY RANGE (server_created_at)
-        ");
+        ');
 
         $this->createPartition(date('Y-m-01'));
     }
