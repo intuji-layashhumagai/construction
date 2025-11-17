@@ -23,6 +23,10 @@ return new class extends Migration
             $table->bigInteger('sequence_number');
 
             $table->timestamps();
+
+            // Basic indexes
+            $table->index(['worker_id']);
+            $table->index(['device_id', 'sequence_number']);
         });
     }
 
