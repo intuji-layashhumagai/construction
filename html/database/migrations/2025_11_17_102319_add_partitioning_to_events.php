@@ -29,6 +29,8 @@ return new class extends Migration
         ');
 
         $this->createPartition(date('Y-m-01'));
+
+        $this->createPartitionManagement();
     }
 
     /**
@@ -53,6 +55,68 @@ return new class extends Migration
     }
 
     // todo: Auto manage the partation before partation is required
+
+    private function createPartitionManagement()
+    {
+        // Function to automatically create partitions
+        DB::statement("
+            CREATE OR REPLACE FUNCTION create_events_partition()
+            RETURNS trigger AS $$
+            DECLARE
+                partition_date date;
+                partition_name text;
+            BEGIN
+                partition_date := date_trunc('month', NEW.month_partition);
+                partition_name := 'events_' || to_char(partition_date, 'YYYY_MM');
+                
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_tables 
+                    WHERE tablename = partition_name
+                ) THEN
+                    EXECUTE format(
+                        'CREATE TABLE %I PARTITION OF events FOR VALUES FROM (%L) TO (%L)',
+                        partition_name,
+                        partition_date,
+                        partition_date + interval '1 month'
+                    );
+                    
+                    -- Create indexes on new partition
+                    EXECUTE format('
+                        CREATE INDEX %I ON %I (entity_type, entity_id)
+                    ', partition_name || '_entity_idx', partition_name);
+                    
+                    EXECUTE format('
+                        CREATE INDEX %I ON %I (device_id, sequence_number)  
+                    ', partition_name || '_device_idx', partition_name);
+                    
+                    EXECUTE format('
+                        CREATE INDEX %I ON %I (server_created_at)
+                    ', partition_name || '_timestamp_idx', partition_name);
+                END IF;
+                
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+        ");
+
+        // Create trigger
+        DB::statement("
+            CREATE TRIGGER ensure_events_partition
+            BEFORE INSERT ON events
+            FOR EACH ROW EXECUTE FUNCTION create_events_partition();
+        ");
+
+        // Create future partitions
+        $this->createFuturePartitions();
+    }
+
+        private function createFuturePartitions()
+    {
+        for ($i = 1; $i <= 3; $i++) {
+            $monthStart = now()->addMonths($i)->format('Y-m-01');
+            $this->createPartition($monthStart);
+        }
+    }
 
     /**
      * Reverse the migrations.
