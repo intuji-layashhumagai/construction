@@ -34,10 +34,14 @@ class LateEventArrivalTest extends TestCase
         // Simulate initial state that the device was online and events created
         $this->createInitialEventSequence();
 
-        // Device goes offline for 3 weeks but  other events continue to occur in the system
-
-        // Simulate events that happeened while device was offline
+        // Device goes offline for 3 weeks but  other events continue to occur in the system and  Simulate events that happeened while device was offline
         $this->createEventsDuringDeviceOfflinePeriod();
+
+        // Device comes back online after 3 weeks and syncs its old events
+        $this->syncLateEventsFromOfflineDevice();
+
+        // Verify the final state is correct even for late arrivals
+        $this->verifyFinalStateIsCorrect();
     }
 
     private function createInitialEventSequence(): void
@@ -98,5 +102,53 @@ class LateEventArrivalTest extends TestCase
             'sequence_number' => 1,
             'server_created_at' => now()->addDays(15),
         ]);
+    }
+
+    private function syncLateEventsFromOfflineDevice(): void
+    {
+        // Device comes back online and syncs events from its offline period
+
+        // These events have old timestamps but are arriving now
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'worker',
+            'entity_id' => $this->workerId,
+            'worker_id' => $this->workerId,
+            'event_type' => 'hours_logged',
+            'event_data' => ['hours_worked' => 25], // Work done 2.5 weeks ago
+            'device_id' => $this->deviceId,
+            'sequence_number' => 3, // Continues from this device's sequence
+            'server_created_at' => now()->addDays(20),
+        ]);
+
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'worker',
+            'entity_id' => $this->workerId,
+            'worker_id' => $this->workerId,
+            'event_type' => 'training_completed',
+            'event_data' => ['training' => 'safety_certification', 'status' => 'completed'],
+            'device_id' => $this->deviceId,
+            'sequence_number' => 4,
+            'server_created_at' => now()->addDays(25),
+        ]);
+    }
+
+    private function verifyFinalStateIsCorrect(): void
+    {
+        $finalState = Event::replayEventSequence('worker', $this->workerId);
+        info($finalState);
+
+        // Verify all events addups  to the final state
+        $this->assertEquals('John Doe', $finalState['name']);
+        $this->assertEquals('senior_carpenter', $finalState['role']);
+        $this->assertEquals('completed', $finalState['status']); // From training_completed
+
+        // Verify hours are correctly accumulated from all devices
+        // 40 (initial) + 35 (online) + 25 (late) = 100 hours
+        $this->assertEquals(100, $finalState['hours_worked']);
+
+        // Verify training certification is included
+        $this->assertEquals('safety_certification', $finalState['training']);
     }
 }
