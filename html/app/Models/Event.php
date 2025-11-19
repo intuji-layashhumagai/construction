@@ -33,6 +33,8 @@ class Event extends Model
         ];
     }
 
+    // todo: logics for sequence generation for events and logics for conflict resolution for data
+
     /**
      * Scope for events related to specific entity
      */

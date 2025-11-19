@@ -267,8 +267,7 @@ class LateEventArrivalTest extends TestCase
         $this->assertEquals(800, $finalState['quantity']); // 1000 - 200
     }
 
-
-   /**
+    /**
      * Scenario: Old events must be archived but remain queryable for audit purposes
      * Requirement: Archived events should still be accessible for compliance
      */
