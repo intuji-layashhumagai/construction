@@ -151,4 +151,50 @@ class LateEventArrivalTest extends TestCase
         // Verify training certification is included
         $this->assertEquals('safety_certification', $finalState['training']);
     }
+
+
+    /**
+     * Scenario: Device clocks might be wrong, showing events happening in the future or distant past
+     * Requirement: Events should be ordered by sequence number within device, not timestamp
+     */
+    #[Test]
+    public function events_are_ordered_by_sequence_not_timestamp_for_same_device()
+    {
+        $entityId = (string) Str::uuid();
+
+        // Create events with wrong timestamps for the device's clock was incorrect or out of sync
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'inventory',
+            'entity_id' => $entityId,
+            'worker_id' => $this->workerId,
+            'event_type' => 'stock_received',
+            'event_data' => ['item' => 'nails', 'quantity' => 100],
+            'device_id' => $this->deviceId,
+            'sequence_number' => 1,
+            'server_created_at' => now()->addMonths(1)->addDays(5),
+        ]);
+
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'inventory',
+            'entity_id' => $entityId,
+            'worker_id' => $this->workerId,
+            'event_type' => 'stock_used',
+            'event_data' => ['quantity_used' => 30],
+            'device_id' => $this->deviceId,
+            'sequence_number' => 2,
+            'server_created_at' => now()->addMonths(1)->subDays(1),
+        ]);
+
+        $events = Event::forEntity('inventory', $entityId)
+            ->orderBy('sequence_number')
+            ->get();
+
+        // Events should be in sequence order not by the timestamps
+        $this->assertEquals(1, $events[0]->sequence_number);
+        $this->assertEquals('stock_received', $events[0]->event_type);
+        $this->assertEquals(2, $events[1]->sequence_number);
+        $this->assertEquals('stock_used', $events[1]->event_type);
+    }
 }
