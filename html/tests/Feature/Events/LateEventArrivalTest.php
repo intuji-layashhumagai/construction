@@ -31,9 +31,13 @@ class LateEventArrivalTest extends TestCase
     #[Test]
     public function it_handles_events_arriving_weeks_late_from_offline_devices()
     {
-        // Simulate initial state that the device was online and events created 
+        // Simulate initial state that the device was online and events created
         $this->createInitialEventSequence();
-        
+
+        // Device goes offline for 3 weeks but  other events continue to occur in the system
+
+        // Simulate events that happeened while device was offline
+        $this->createEventsDuringDeviceOfflinePeriod();
     }
 
     private function createInitialEventSequence(): void
@@ -48,7 +52,7 @@ class LateEventArrivalTest extends TestCase
             'event_data' => ['name' => 'John Doe', 'role' => 'carpenter', 'hours_worked' => 0],
             'device_id' => $this->deviceId,
             'sequence_number' => 1,
-            'server_created_at' => now()->addDays(1), // Within partition range
+            'server_created_at' => now()->addDays(1),
         ]);
 
         // Device logs some hours before going offline
@@ -65,5 +69,34 @@ class LateEventArrivalTest extends TestCase
         ]);
     }
 
-   
+    private function createEventsDuringDeviceOfflinePeriod(): void
+    {
+        // Other devices continue working while the test device is offline
+
+        // Worker gets promoted by supervisor
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'worker',
+            'entity_id' => $this->workerId,
+            'worker_id' => $this->workerId,
+            'event_type' => 'role_updated',
+            'event_data' => ['role' => 'senior_carpenter'],
+            'device_id' => (string) Str::uuid(),
+            'sequence_number' => 1, // Different device, so sequence is separate
+            'server_created_at' => now()->addDays(10),
+        ]);
+
+        // More hours logged by other workers
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'worker',
+            'entity_id' => $this->workerId,
+            'worker_id' => $this->workerId,
+            'event_type' => 'hours_logged',
+            'event_data' => ['hours_worked' => 35],
+            'device_id' => (string) Str::uuid(),
+            'sequence_number' => 1,
+            'server_created_at' => now()->addDays(15),
+        ]);
+    }
 }
