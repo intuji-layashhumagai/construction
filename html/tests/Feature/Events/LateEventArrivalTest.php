@@ -137,7 +137,6 @@ class LateEventArrivalTest extends TestCase
     private function verifyFinalStateIsCorrect(): void
     {
         $finalState = Event::replayEventSequence('worker', $this->workerId);
-        info($finalState);
 
         // Verify all events addups  to the final state
         $this->assertEquals('John Doe', $finalState['name']);
@@ -261,7 +260,6 @@ class LateEventArrivalTest extends TestCase
         ]);
 
         $finalState = Event::replayEventSequence('inventory', $entityId);
-        info($finalState);
 
         // Materialized view should reflect the late event
         $this->assertEquals(800, $finalState['quantity']); // 1000 - 200
