@@ -20,9 +20,8 @@ final class HandleConcurrentEventsAction
         $deviceClock = $incomingEventData['device_vector_clock'];
         $authoritativeClock = $mostRecentEvent->vector_clock;
 
-        //todo: create action class from vectorservice functions
         // Merge the clocks to create the new authoritative state
-        $mergedClock = app(\App\Services\VectorClockService::class)->merge($authoritativeClock, $deviceClock);
+        $mergedClock = ProcessSingleEventAction::mergeVectorClocks($authoritativeClock, $deviceClock);
 
         SaveEventToStoreAction::handle($incomingEventData, $mergedClock);
     }
