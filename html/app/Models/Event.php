@@ -12,6 +12,7 @@ class Event extends Model
     use HasUuids;
 
     protected $fillable = [
+        'id',
         'event_id',
         'worker_id',
         'event_type',
