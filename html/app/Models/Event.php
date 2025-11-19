@@ -14,6 +14,8 @@ class Event extends Model
     protected $fillable = [
         'id',
         'event_id',
+        'entity_type',
+        'entity_id',
         'worker_id',
         'event_type',
         'event_data',
