@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EventType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -52,6 +53,43 @@ class Event extends Model
             ->orderBy('server_created_at')
             ->get();
 
-        return $events;
+        $state = [];
+        foreach ($events as $event) {
+            $state = $event->stateCalculations($state);
+        }
+
+        return $state;
+    }
+
+    /**
+     * Handles different event types for materialized views
+     */
+    protected function stateCalculations(array $currentState): array
+    {
+        $newState = $currentState;
+        $eventType = EventType::tryFrom($this->event_type);
+
+        if (in_array($eventType, [
+            EventType::WORKER_CREATED,
+            EventType::PROJECT_CREATED,
+            EventType::STOCK_CREATED,
+            EventType::INVENTORY_CREATED,
+        ])) {
+            // Initial set data for the events
+            $newState = array_merge($newState, $this->event_data);
+        } elseif ($eventType === EventType::HOURS_LOGGED) {
+            // Accumulate hours calculated
+            $newState['hours_worked'] = ($newState['hours_worked'] ?? 0) + ($this->event_data['hours_worked'] ?? 0);
+        } elseif ($eventType === EventType::STOCK_USED) {
+            // Subtract from quantity
+            $newState['quantity'] = ($newState['quantity'] ?? 0) - ($this->event_data['quantity_used'] ?? 0);
+        } elseif ($eventType === EventType::STOCK_ADJUSTED) {
+            // Add or subtract stocks
+            $newState['quantity'] = ($newState['quantity'] ?? 0) + ($this->event_data['adjustment'] ?? 0);
+        } else {
+            $newState = array_merge($newState, $this->event_data);
+        }
+
+        return $newState;
     }
 }
