@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EventType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,4 +32,34 @@ class Event extends Model
             'server_created_at' => 'datetime',
         ];
     }
+
+    /**
+     * Replay events to reconstruct entity state
+     * Implements requires current state received by replaying events
+     */
+    public static function replayForEntity(string $entityType, string $entityId): array
+    {
+        $events = static::forEntity($entityType, $entityId)
+            ->orderBy('sequence_number')
+            ->orderBy('server_created_at')
+            ->get();
+
+        $state = [];
+        foreach ($events as $event) {
+            $state = $event->applyToState($state);
+        }
+
+        return $state;
+    }
+
+    /**
+     * Scope for events related to specific entity
+     */
+    public function scopeForEntity($query, string $entityType, string $entityId)
+    {
+        return $query->where('entity_type', $entityType)
+            ->where('entity_id', $entityId);
+    }
+
+    
 }
