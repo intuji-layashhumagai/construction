@@ -66,7 +66,7 @@ return new class extends Migration
                 partition_date date;
                 partition_name text;
             BEGIN
-                partition_date := date_trunc('month', NEW.month_partition);
+                partition_date := date_trunc('month', NEW.server_created_at);
                 partition_name := 'events_' || to_char(partition_date, 'YYYY_MM');
                 
                 IF NOT EXISTS (
