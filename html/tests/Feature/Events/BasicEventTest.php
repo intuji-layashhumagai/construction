@@ -5,13 +5,14 @@ namespace Tests\Feature\Events;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BasicEventTest extends TestCase
 {
     // use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_can_store_and_retrieve_an_event()
     {
         $id = Str::uuid();
