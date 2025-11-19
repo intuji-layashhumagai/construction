@@ -5,5 +5,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('events')->group(function () {
     // Store new event
-    Route::post('/', [EventController::class, 'store']);
 });
