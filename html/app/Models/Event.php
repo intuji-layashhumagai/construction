@@ -40,4 +40,18 @@ class Event extends Model
         return $query->where('entity_type', $entityType)
             ->where('entity_id', $entityId);
     }
+
+    /**
+     * Replay events to reconstruct entity state
+     * Implements requires current state received by replaying events
+     */
+    public static function replayEventSequence(string $entityType, string $entityId): array
+    {
+        $events = static::forEntity($entityType, $entityId)
+            ->orderBy('sequence_number')
+            ->orderBy('server_created_at')
+            ->get();
+
+        return $events;
+    }
 }
