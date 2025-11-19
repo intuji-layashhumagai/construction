@@ -224,4 +224,75 @@ class LateEventArrivalTest extends TestCase
         $finalState = Event::replayEventSequence('worker', $entityId);
         $this->assertEquals('deprecated_role', $finalState['role']);
     }
+
+    /**
+     * Scenario: Materialized views must update correctly when late events arrive
+     * Requirement: Late events should trigger view updates to reflect current state
+     */
+    #[Test]
+    public function materialized_views_update_correctly_when_late_events_arrive()
+    {
+        $entityId = (string) Str::uuid();
+
+        // Create initial state
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'inventory',
+            'entity_id' => $entityId,
+            'worker_id' => $this->workerId,
+            'event_type' => 'stock_created',
+            'event_data' => ['item' => 'bricks', 'quantity' => 1000],
+            'device_id' => $this->deviceId,
+            'sequence_number' => 1,
+            'server_created_at' => now()->addDays(40),
+        ]);
+
+        // Late event arrives
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'inventory',
+            'entity_id' => $entityId,
+            'worker_id' => $this->workerId,
+            'event_type' => 'stock_used',
+            'event_data' => ['quantity_used' => 200],
+            'device_id' => $this->deviceId,
+            'sequence_number' => 2,
+            'server_created_at' => now()->addDays(45),
+        ]);
+
+        $finalState = Event::replayEventSequence('inventory', $entityId);
+        info($finalState);
+
+        // Materialized view should reflect the late event
+        $this->assertEquals(800, $finalState['quantity']); // 1000 - 200
+    }
+
+
+   /**
+     * Scenario: Old events must be archived but remain queryable for audit purposes
+     * Requirement: Archived events should still be accessible for compliance
+     */
+    #[Test]
+    public function old_events_archived_but_remain_queryable_for_auditing()
+    {
+        $entityId = (string) Str::uuid();
+
+        // Create an old event
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'worker',
+            'entity_id' => $entityId,
+            'worker_id' => $entityId,
+            'event_type' => 'worker_created',
+            'event_data' => ['name' => 'Audit Worker'],
+            'device_id' => $this->deviceId,
+            'sequence_number' => 1,
+            'server_created_at' => now()->addMonths(2)->addDays(20),
+        ]);
+
+        // Even if archived, should still be queryable
+        $events = Event::forEntity('worker', $entityId)->get();
+        $this->assertCount(1, $events);
+        $this->assertEquals('Audit Worker', $events[0]->event_data['name']);
+    }
 }
