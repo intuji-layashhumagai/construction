@@ -7,6 +7,8 @@ networks:
 volumes:
   csm-postgres-data:
     name: kScfWrF8PUtK0e9FdGtB
+  csm-test-postgres-data:
+    name: tScfWrF8pUtiK0e9FaGatB
   csm-redis-data:
     name: 4TWaJPJdILWuVDQ6Nctz
 
@@ -52,31 +54,55 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Database Service for Tests
+  csm-test-postgres:
+    image: postgres:17.4
+    container_name: csm-test-postgres
+    ports:
+      # Map to a different host port (e.g., 5433) to avoid conflict 
+      - '5433:5432'
+    environment:
+      # Use a dedicated database name for testing
+      POSTGRES_DB: csm_test 
+      POSTGRES_USER: csm_user_test
+      POSTGRES_PASSWORD: supersecretpassword_test
+    volumes:
+      # Use a dedicated volume for test data
+      - csm-test-postgres-data:/var/lib/postgresql/data
+    networks:
+      - csm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U csm_user_test -d csm_test"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
   # Laravel + Nginx API server
   csm-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: csm-api
-    working_dir: /var/www/html
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
     ports:
-      - '8080:80'
+      - '8080:8080'
     volumes:
-      - ./html/:/var/www/html
+      - './html/:/var/www/html'
     environment:
-      WEB_DOCUMENT_ROOT: /var/www/html/public
-      COMPOSER_VERSION: 2
-      COMPOSER_ALLOW_SUPERUSER: 1
-    depends_on:
-      csm-postgres:
-        condition: service_healthy
-      csm-redis:
-        condition: service_healthy
+      SHOW_WELCOME_MESSAGE: false
+      COMPOSER_ALLOW_SUPERUSER: 0
     networks:
       - csm-network
+    depends_on:
+      - csm-postgres
+      - csm-redis
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8080' ]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 60s
     restart: unless-stopped
+

@@ -39,6 +39,7 @@ output/
 *.key
 *.log
 .env
+.env.testing
 public/storage
 composer.phar
 yarn.lock

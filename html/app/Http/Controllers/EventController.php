@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEventRequest;
-use App\Models\EventStore;
 use App\Services\EventService;
-use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -14,10 +12,7 @@ class EventController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
+    public function index() {}
 
     /**
      * Store a newly created resource in storage.
@@ -26,29 +21,5 @@ class EventController extends Controller
     {
 
         return $this->eventService->storeEvent($request->validated());
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(EventStore $eventStore)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, EventStore $eventStore)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(EventStore $eventStore)
-    {
-        //
     }
 }
