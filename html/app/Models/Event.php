@@ -22,6 +22,7 @@ class Event extends Model
         'event_data',
         'device_id',
         'sequence_number',
+        'vector_clock',
         'server_created_at',
     ];
 
@@ -29,6 +30,7 @@ class Event extends Model
     {
         return [
             'event_data' => 'array',
+            'vector_clock' => 'array',
             'server_created_at' => 'datetime',
         ];
     }
