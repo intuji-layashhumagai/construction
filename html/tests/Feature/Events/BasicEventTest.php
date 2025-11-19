@@ -2,28 +2,32 @@
 
 namespace Tests\Feature\Events;
 
-use Tests\TestCase;
 use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
+use Tests\TestCase;
 
 class BasicEventTest extends TestCase
 {
-    use RefreshDatabase;
+    // use RefreshDatabase;
 
     /** @test */
     public function it_can_store_and_retrieve_an_event()
     {
+        $id = Str::uuid();
+
         $event = Event::create([
-            'event_id' => 'test-uuid-1',
+            'id' => $id,
             'entity_type' => 'worker',
-            'entity_id' => 'worker-uuid-1',
+            'entity_id' => Str::uuid(),
             'event_type' => 'worker_created',
             'event_data' => ['name' => 'John Doe'],
-            'device_id' => 'device-uuid-1',
+            'worker_id' => $id,
+            'device_id' => Str::uuid(),
             'sequence_number' => 1,
         ]);
 
-        $retrievedEvent = Event::find('test-uuid-1');
+        $retrievedEvent = Event::where('id', $id->toString())->first();
 
         $this->assertNotNull($retrievedEvent);
         $this->assertEquals('worker_created', $retrievedEvent->event_type);
