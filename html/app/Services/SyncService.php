@@ -5,10 +5,10 @@ namespace App\Services;
 use App\Actions\Event\ProcessSingleEventAction;
 use Illuminate\Support\Facades\DB;
 
-
 class SyncService
 {
     public function __construct() {}
+
     // todo: implementation of queue of background sync
     /**
      * Process a batch of events from an offline device.
@@ -19,7 +19,7 @@ class SyncService
      */
     public function processEventBatch(array $eventsFromDevice): void
     {
-        // Wrap this entire batch in a database transaction
+        // Wraped this entire batch in a database transaction
         // to ensure atomicity during conflict resolution and state updates
 
         DB::transaction(function () use ($eventsFromDevice) {
