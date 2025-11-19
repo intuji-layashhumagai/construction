@@ -19,7 +19,7 @@ export USER_ID GROUP_ID
 COMPOSE_CMD="docker compose --env-file $APP_ENV_FILE --file compose.yml"
 
 # Create the network for the services
-docker network create csm-app-network >/dev/null 2>&1 || true
+docker network create csm-network >/dev/null 2>&1 || true
 
 echo "Starting Docker containers..."
   ${COMPOSE_CMD} up --build
