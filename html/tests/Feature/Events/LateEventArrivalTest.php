@@ -152,7 +152,6 @@ class LateEventArrivalTest extends TestCase
         $this->assertEquals('safety_certification', $finalState['training']);
     }
 
-
     /**
      * Scenario: Device clocks might be wrong, showing events happening in the future or distant past
      * Requirement: Events should be ordered by sequence number within device, not timestamp
@@ -196,5 +195,33 @@ class LateEventArrivalTest extends TestCase
         $this->assertEquals('stock_received', $events[0]->event_type);
         $this->assertEquals(2, $events[1]->sequence_number);
         $this->assertEquals('stock_used', $events[1]->event_type);
+    }
+
+    /**
+     * Scenario: Events created under outdated business rules must be validated
+     * Requirement: Old events should be accepted even if they don't match current business rules
+     */
+    #[Test]
+    public function events_created_under_outdated_business_rules_are_accepted()
+    {
+        $entityId = (string) Str::uuid();
+
+        // Create an old event with data that might be invalid under current rules
+        // For example, an old role that is no longer allowed
+        Event::create([
+            'id' => (string) Str::uuid(),
+            'entity_type' => 'worker',
+            'entity_id' => $entityId,
+            'worker_id' => $entityId,
+            'event_type' => 'worker_created',
+            'event_data' => ['name' => 'Old Worker', 'role' => 'deprecated_role'], // Old role
+            'device_id' => $this->deviceId,
+            'sequence_number' => 1,
+            'server_created_at' => now()->addMonths(2)->addDays(10),
+        ]);
+
+        // The event should be accepted and replayed correctly
+        $finalState = Event::replayEventSequence('worker', $entityId);
+        $this->assertEquals('deprecated_role', $finalState['role']);
     }
 }
