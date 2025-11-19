@@ -3,7 +3,6 @@
 namespace App\Actions\Event;
 
 use App\Models\Event;
-use App\Services\VectorClockService;
 
 /**
  * Process a single event from a device, handling causality and conflicts.
@@ -15,6 +14,65 @@ use App\Services\VectorClockService;
  */
 final class ProcessSingleEventAction
 {
+    /**
+     * Merge two vector clocks by taking the maximum value for each device.
+     */
+    public static function mergeVectorClocks(array $firstClock, array $secondClock): array
+    {
+        $resultClock = [];
+
+        // Get all unique device IDs from both clocks
+        $allDeviceIds = array_keys(array_merge($firstClock, $secondClock));
+
+        foreach ($allDeviceIds as $deviceId) {
+            $firstCount = $firstClock[$deviceId] ?? 0;
+            $secondCount = $secondClock[$deviceId] ?? 0;
+
+            // Take the maximum count for each device ID
+            $resultClock[$deviceId] = max($firstCount, $secondCount);
+        }
+
+        return $resultClock;
+    }
+
+    /**
+     * Compare two vector clocks to determine their causal relationship.
+     */
+    public static function compareVectorClocks(array $firstClock, array $secondClock): string
+    {
+        $firstIsLessOrEqual = true;
+        $secondIsLessOrEqual = true;
+
+        $deviceIds = array_keys(array_merge($firstClock, $secondClock));
+
+        foreach ($deviceIds as $deviceId) {
+            $firstCount = $firstClock[$deviceId] ?? 0;
+            $secondCount = $secondClock[$deviceId] ?? 0;
+
+            // Check if first clock is greater than second in any dimension
+            if ($firstCount > $secondCount) {
+                $firstIsLessOrEqual = false;
+            }
+            // Check if second clock is greater than first in any dimension
+            if ($secondCount > $firstCount) {
+                $secondIsLessOrEqual = false;
+            }
+        }
+
+        if ($firstIsLessOrEqual && ! $secondIsLessOrEqual) {
+            // Second clock happened after first (first is a predecessor)
+            return 'Happened-Before';
+        }
+
+        if ($secondIsLessOrEqual && ! $firstIsLessOrEqual) {
+            // First clock happened after second (second is a predecessor, this is a LATE event)
+            return 'Happened-After';
+        }
+
+        // If neither strictly dominates the other, they are concurrent
+        return 'Concurrent';
+    }
+
     public static function handle(array $incomingEventData): void
     {
         // todo: refactoring the vectorclock service to actions
@@ -32,14 +90,14 @@ final class ProcessSingleEventAction
             : [];
 
         // Determine the causal relationship between the events
-        $clockComparison = app(VectorClockService::class)->compare($authoritativeClock, $deviceClock);
+        $clockComparison = self::compareVectorClocks($authoritativeClock, $deviceClock);
 
         if ($clockComparison === 'Concurrent') {
             // Events happened independently - need conflict resolution
             HandleConcurrentEventsAction::handle($incomingEventData, $mostRecentEvent);
         } else {
             // Events have a clear causal order - persist normally
-            $mergedClock = app(VectorClockService::class)->merge($authoritativeClock, $deviceClock);
+            $mergedClock = self::mergeVectorClocks($authoritativeClock, $deviceClock);
             SaveEventToStoreAction::handle($incomingEventData, $mergedClock);
         }
     }
