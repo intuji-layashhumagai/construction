@@ -16,6 +16,8 @@ return new class extends Migration
         DB::statement('
             CREATE TABLE events (
                 id UUID NOT NULL,
+                entity_type VARCHAR(100) NOT NULL,
+                entity_id UUID NOT NULL,
                 event_type VARCHAR(100) NOT NULL,
                 device_id UUID NOT NULL,
                 worker_id UUID NOT NULL,
