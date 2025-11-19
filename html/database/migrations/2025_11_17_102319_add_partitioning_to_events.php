@@ -100,17 +100,17 @@ return new class extends Migration
         ");
 
         // Create trigger
-        DB::statement("
+        DB::statement('
             CREATE TRIGGER ensure_events_partition
             BEFORE INSERT ON events
             FOR EACH ROW EXECUTE FUNCTION create_events_partition();
-        ");
+        ');
 
         // Create future partitions
         $this->createFuturePartitions();
     }
 
-        private function createFuturePartitions()
+    private function createFuturePartitions()
     {
         for ($i = 1; $i <= 3; $i++) {
             $monthStart = now()->addMonths($i)->format('Y-m-01');
