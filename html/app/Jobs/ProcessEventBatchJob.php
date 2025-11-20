@@ -109,4 +109,63 @@ class ProcessEventBatchJob implements ShouldQueue
             'line' => $exception->getLine(),
         ]);
     }
+
+    /**
+     * Safely retrieve the authoritative vector clock with corruption recovery.
+     */
+    protected function getAuthoritativeVectorClock(): array
+    {
+        $key = "vc_auth:{$this->deviceId}";
+
+        $data = Redis::get($key);
+
+        if ($data) {
+            $decoded = json_decode($data, true);
+
+            if ($this->isValidVectorClockData($decoded)) {
+                return $decoded['final_vc'];
+            }
+
+            Log::warning("Corrupted vc_auth data for {$this->deviceId}, reconstructing from database");
+        }
+
+        // Reconstruct from database
+        $latestEvent = Event::where('device_id', $this->deviceId)
+            ->orderBy('server_created_at', 'desc')
+            ->first();
+
+        $finalVc = $latestEvent ? $latestEvent->vector_clock : [];
+
+        // Update Redis with reconstructed data
+        $payload = [
+            'status' => 'reconstructed',
+            'last_sync_time' => now()->toDateTimeString(),
+            'final_vc' => $finalVc,
+            'processed_at' => now()->toISOString(),
+        ];
+
+        Redis::set($key, json_encode($payload));
+
+        Log::info("Reconstructed and updated vc_auth for {$this->deviceId}");
+
+        return $finalVc;
+    }
+
+    /**
+     * Validate the structure of vector clock data.
+     */
+    private function isValidVectorClockData(?array $data): bool
+    {
+        if (! is_array($data) || ! isset($data['final_vc']) || ! is_array($data['final_vc'])) {
+            return false;
+        }
+
+        foreach ($data['final_vc'] as $device => $count) {
+            if (! is_string($device) || ! is_int($count) || $count < 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
