@@ -16,7 +16,6 @@ final class SaveEventToStoreAction
     {
         // Create the event record with all necessary data
         $event = new Event([
-            'id' => $eventData['id'], // UUID generated on the device
             'entity_type' => $eventData['entity_type'],
             'entity_id' => $eventData['entity_id'],
             'event_type' => $eventData['event_type'],
