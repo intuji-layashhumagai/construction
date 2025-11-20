@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Http\Requests;
+
+use App\Enums\EventType;
+use Illuminate\Foundation\Http\FormRequest;
+
+class SyncEventRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'events' => 'required|array|min:1',
+            'events.*.entity_type' => 'required|string|max:50',
+            'events.*.entity_id' => 'required|uuid',
+            'events.*.event_type' => 'required|string|in:'.implode(',', array_map(fn ($case) => $case->value, EventType::cases())),
+            'events.*.event_data' => 'required|array',
+            'events.*.device_id' => 'required|uuid',
+            'events.*.worker_id' => 'required|uuid',
+            'events.*.device_vector_clock' => 'required|array',
+            'events.*.sequence_number' => 'required|integer|min:1',
+        ];
+    }
+}

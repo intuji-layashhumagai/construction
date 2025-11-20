@@ -23,6 +23,7 @@ return new class extends Migration
                 worker_id UUID NOT NULL,
                 event_data JSONB NOT NULL,
                 sequence_number BIGINT NOT NULL,
+                vector_clock JSONB NOT NULL,
                 server_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
                 created_at TIMESTAMP NULL,
                 updated_at TIMESTAMP NULL,
