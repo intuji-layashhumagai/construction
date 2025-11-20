@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEventRequest;
+use App\Http\Requests\SyncEventRequest;
 use App\Services\EventService;
 use App\Services\SyncService;
 
@@ -26,9 +27,8 @@ class EventController extends Controller
         return $this->eventService->storeEvent($request->validated());
     }
 
-    public function sync(StoreEventRequest $request)
+    public function sync(SyncEventRequest $request)
     {
-
-        return $this->syncService->processEventBatch($request->validated());
+        return $this->syncService->processEventBatch($request->validated()['events']);
     }
 }

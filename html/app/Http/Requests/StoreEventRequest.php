@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\EventType;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreEventRequest extends FormRequest
@@ -24,7 +25,7 @@ class StoreEventRequest extends FormRequest
         return [
             'entity_type' => 'required|string|max:50',
             'entity_id' => 'required|uuid',
-            'event_type' => 'required|string|max:100',
+            'event_type' => 'required|string|in:'.implode(',', array_map(fn ($case) => $case->value, EventType::cases())),
             'event_data' => 'required|array',
             'device_id' => 'required|uuid',
             'worker_id' => 'required|uuid',
