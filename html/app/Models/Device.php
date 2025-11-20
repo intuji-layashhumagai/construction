@@ -20,7 +20,7 @@ class Device extends Model
         'network_type',
         'public_key',
         'certificate_expires_at',
-        
+
     ];
 
     protected function casts(): array
@@ -31,8 +31,8 @@ class Device extends Model
         ];
     }
 
-        protected $hidden = [
-        
+    protected $hidden = [
+
         'public_key',
     ];
 

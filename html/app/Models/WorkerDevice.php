@@ -28,7 +28,6 @@ class WorkerDevice extends Model
         ];
     }
 
-
     public function worker(): BelongsTo
     {
         return $this->belongsTo(Worker::class);
