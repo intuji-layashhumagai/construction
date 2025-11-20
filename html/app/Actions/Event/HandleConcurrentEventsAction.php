@@ -13,16 +13,22 @@ use App\Models\Event;
  */
 final class HandleConcurrentEventsAction
 {
-    public static function handle(array $incomingEventData, ?Event $mostRecentEvent): Event
+    public static function handle(array $incomingEventData, ?Event $mostRecentEvent): ?Event
     {
+        // For tie-breaking when events are concurrent, use lexicographical comparison of device IDs
+        // The device with the smaller ID (lexicographically) takes precedence
+        if (strcmp($incomingEventData['device_id'], $mostRecentEvent->device_id) < 0) {
+            // Incoming device has priority - save the event
+            $deviceClock = $incomingEventData['device_vector_clock'];
+            $authoritativeClock = $mostRecentEvent->vector_clock;
 
-        // Get the authoritative clock from the most recent event
-        $deviceClock = $incomingEventData['device_vector_clock'];
-        $authoritativeClock = $mostRecentEvent->vector_clock;
+            // Merge the clocks to create the new authoritative state
+            $mergedClock = ProcessSingleEventAction::mergeVectorClocks($authoritativeClock, $deviceClock);
 
-        // Merge the clocks to create the new authoritative state
-        $mergedClock = ProcessSingleEventAction::mergeVectorClocks($authoritativeClock, $deviceClock);
+            return SaveEventToStoreAction::handle($incomingEventData, $mergedClock);
+        }
 
-        return SaveEventToStoreAction::handle($incomingEventData, $mergedClock);
+        return null;
+
     }
 }
