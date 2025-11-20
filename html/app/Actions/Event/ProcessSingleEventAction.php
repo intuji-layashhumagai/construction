@@ -73,7 +73,7 @@ final class ProcessSingleEventAction
         return 'Concurrent';
     }
 
-    public static function handle(array $incomingEventData): void
+    public static function handle(array $incomingEventData): Event
     {
         // todo: refactoring the vectorclock service to actions
         $entityId = $incomingEventData['entity_id'];
@@ -91,14 +91,16 @@ final class ProcessSingleEventAction
 
         // Determine the causal relationship between the events
         $clockComparison = self::compareVectorClocks($authoritativeClock, $deviceClock);
-
+        $result = [];
         if ($clockComparison === 'Concurrent') {
             // Events happened independently - need conflict resolution
-            HandleConcurrentEventsAction::handle($incomingEventData, $mostRecentEvent);
+            $result = HandleConcurrentEventsAction::handle($incomingEventData, $mostRecentEvent);
         } else {
             // Events have a clear causal order - persist normally
             $mergedClock = self::mergeVectorClocks($authoritativeClock, $deviceClock);
-            SaveEventToStoreAction::handle($incomingEventData, $mergedClock);
+            $result = SaveEventToStoreAction::handle($incomingEventData, $mergedClock);
         }
+
+        return $result;
     }
 }

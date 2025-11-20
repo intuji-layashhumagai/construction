@@ -13,7 +13,7 @@ use App\Models\Event;
  */
 final class HandleConcurrentEventsAction
 {
-    public static function handle(array $incomingEventData, ?Event $mostRecentEvent): void
+    public static function handle(array $incomingEventData, ?Event $mostRecentEvent): Event
     {
 
         // Get the authoritative clock from the most recent event
@@ -23,6 +23,6 @@ final class HandleConcurrentEventsAction
         // Merge the clocks to create the new authoritative state
         $mergedClock = ProcessSingleEventAction::mergeVectorClocks($authoritativeClock, $deviceClock);
 
-        SaveEventToStoreAction::handle($incomingEventData, $mergedClock);
+        return SaveEventToStoreAction::handle($incomingEventData, $mergedClock);
     }
 }
