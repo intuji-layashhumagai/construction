@@ -29,7 +29,12 @@ final class ProcessSingleEventAction
             $secondCount = $secondClock[$deviceId] ?? 0;
 
             // Take the maximum count for each device ID
-            $resultClock[$deviceId] = max($firstCount, $secondCount);
+            $maxCount = max($firstCount, $secondCount);
+
+            // Compact: only include non-zero entries to prevent clock growth
+            if ($maxCount > 0) {
+                $resultClock[$deviceId] = $maxCount;
+            }
         }
 
         return $resultClock;
@@ -73,7 +78,7 @@ final class ProcessSingleEventAction
         return 'Concurrent';
     }
 
-    public static function handle(array $incomingEventData): Event
+    public static function handle(array $incomingEventData): ?Event
     {
         // todo: refactoring the vectorclock service to actions
         $entityId = $incomingEventData['entity_id'];
@@ -91,10 +96,14 @@ final class ProcessSingleEventAction
 
         // Determine the causal relationship between the events
         $clockComparison = self::compareVectorClocks($authoritativeClock, $deviceClock);
-        $result = [];
+
         if ($clockComparison === 'Concurrent') {
-            // Events happened independently - need conflict resolution
+            // Events happened independently, need conflict resolution
             $result = HandleConcurrentEventsAction::handle($incomingEventData, $mostRecentEvent);
+            if (! $result) {
+                // Conflict resolved by not saving the incoming event
+                return null;
+            }
         } else {
             // Events have a clear causal order - persist normally
             $mergedClock = self::mergeVectorClocks($authoritativeClock, $deviceClock);
