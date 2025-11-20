@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('role'); // carpenter, foreman, supervisor, etc.
             $table->string('status')->default('active');
-            $table->foreignUuid('supervisor_id')->nullable()->references('id')->on('workers')->onDelete('set null'); // Reports to
+            // $table->uuid('supervisor_id')->nullable(); // Reports to
             $table->string('password')->nullable(); // For online auth
             $table->string('pin_code')->nullable(); // For offline device login
             $table->boolean('pin_required')->default(true);
@@ -31,6 +31,12 @@ return new class extends Migration
             // Indexes for performance
             $table->index(['status', 'role']);
             $table->index(['last_name', 'first_name']);
+        });
+
+        Schema::table('workers', static function (Blueprint $table): void {
+            $table->foreignUuid('supervisor_id')->nullable()->references('id')
+                ->on('workers')
+                ->onDelete('set null');
         });
     }
 
