@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Jobs\ProcessEventBatchJob;
-use Illuminate\Support\Facades\DB;
 
 class SyncService
 {
@@ -18,13 +17,12 @@ class SyncService
      */
     public function processEventBatch(array $eventsFromDevice): void
     {
-        // Wrapped this entire batch in a database transaction
-        // to ensure atomicity during conflict resolution and state updates
+        if (empty($eventsFromDevice)) {
+            return;
+        }
 
-        DB::transaction(function () use ($eventsFromDevice) {
-            foreach ($eventsFromDevice as $eventData) {
-                ProcessEventBatchJob::dispatch($eventData['device_id'], $eventData);
-            }
-        });
+        $deviceId = $eventsFromDevice[0]['device_id'];
+
+        ProcessEventBatchJob::dispatch($deviceId, $eventsFromDevice);
     }
 }
