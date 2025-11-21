@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Actions\Auth\GenerateCertificateAction;
 use App\Actions\Auth\GenerateVectorClock;
 use App\Actions\Worker\GetSingleWorkerAction;
+use App\Models\WorkerDevice;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
@@ -26,6 +27,15 @@ class AuthService
 
         $certificates = GenerateCertificateAction::handle($worker);
         $vectorClock = GenerateVectorClock::handle();
+
+        WorkerDevice::create([
+            'worker_id' => $worker->id,
+            'device_id' => $request['deviceId'],
+            'login_at' => now(),
+            'last_vc_sent' => now(),
+            'certificate_serial' => $certificates['serial_number'],
+            'certificate_issue_time' => $certificates['time'],
+        ]);
 
         return array_merge($certificates, ['vc' => $vectorClock]);
     }
