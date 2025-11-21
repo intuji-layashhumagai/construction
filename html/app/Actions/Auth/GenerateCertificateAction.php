@@ -18,7 +18,6 @@ final class GenerateCertificateAction
         $caKey = file_get_contents(config('project.auth.key_path'));
         $passphrase = config('project.auth.pass_phrase');
         $validityDays = config('project.auth.certification_valid_day');
-        info($validityDays);
 
         $caPrivateKey = openssl_pkey_get_private($caKey, $passphrase);
 
@@ -42,6 +41,7 @@ final class GenerateCertificateAction
         $subject = [
             'countryName' => config('project.country_code', 'NP'),
             'organizationName' => config('project.organization_name', 'Construction Co.'),
+            'organizationalUnitName' => $worker->id,
             'commonName' => $worker->employee_id,
             'emailAddress' => $worker->email,
         ];
