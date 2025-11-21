@@ -15,5 +15,6 @@ Route::middleware(CertificateAuthMiddleware::class)->prefix('events')->group(fun
 Route::prefix('auth')->group(function () {
 
     Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/register-device', [AuthController::class, 'registerDevice'])->name('registerDevice');
 
 });
