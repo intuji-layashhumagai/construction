@@ -9,6 +9,7 @@ build/
 bundle/
 dist/
 output/
+certs/
 
 
 ### Visual Studio Code
