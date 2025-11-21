@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Actions\Auth\TrackCertificateUsageAction;
+use App\Actions\Auth\TrackDeviceUsageAction;
 use App\Actions\Auth\VerifyCertificateAction;
 use Closure;
 use Illuminate\Http\Request;
@@ -49,6 +50,13 @@ class CertificateAuthMiddleware
             $serial,
             $deviceId,
             $request->ip()
+        );
+
+        // Track device usage for multi-device monitoring
+        TrackDeviceUsageAction::handle(
+            $workerId,
+            $deviceId,
+            $serial
         );
 
         return $next($request);
