@@ -47,9 +47,11 @@ final class GenerateCertificateAction
         ];
 
         $csr = openssl_csr_new($subject, $workerKey);
+        $microTime = microtime(true);
+        $serial = (int) self::generateSerial($worker->id, $microTime);
 
         // Sign the certificate
-        $cert = openssl_csr_sign($csr, $caCert, $caPrivateKey, $validityDays);
+        $cert = openssl_csr_sign($csr, $caCert, $caPrivateKey, $validityDays, null, $serial);
 
         openssl_x509_export($cert, $certificate);
 
@@ -61,7 +63,22 @@ final class GenerateCertificateAction
             'private_key_pem' => $workerPrivateKey,
             'public_key_pem' => $workerPublicKey,
             'serial_number' => $certInfo['serialNumber'],
+            'serial_number_hex' => $certInfo['serialNumberHex'],
             'expires_at' => $expiresAt->toDateTimeString(),
+            'time' => $microTime,
         ];
+    }
+
+    private static function generateSerial($userId, $time): string
+    {
+        $data = $userId.'_'.$time;
+
+        // create hash and convert to integer
+        $hash = hash('sha256', $data);
+        // take first 15 characters of the hash and convert from hexadecimal  to decimal
+        $serial = base_convert(substr($hash, 0, 15), 16, 10);
+
+        // Ensure positive integer and within reasonable bounds
+        return abs((int) $serial) % PHP_INT_MAX;
     }
 }
