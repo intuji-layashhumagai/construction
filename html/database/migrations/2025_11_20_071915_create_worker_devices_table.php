@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignUuid('worker_id')->references('id')->on('workers')->onDelete('cascade');
             $table->foreignUuid('device_id')->references('id')->on('devices')->onDelete('cascade');
             $table->timestamp('login_at');
+            $table->jsonb('last_vc_sent')->nullable();
             $table->timestamp('logout_at')->nullable();
             $table->string('session_status')->default('active');
             $table->integer('events_created')->default(0);
