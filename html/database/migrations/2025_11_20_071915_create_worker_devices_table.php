@@ -18,6 +18,8 @@ return new class extends Migration
             $table->timestamp('login_at');
             $table->jsonb('last_vc_sent')->nullable();
             $table->timestamp('logout_at')->nullable();
+            $table->unsignedBigInteger('certificate_serial');
+            $table->float('certificate_issue_time');
             $table->string('session_status')->default('active');
             $table->integer('events_created')->default(0);
             $table->timestamps();
