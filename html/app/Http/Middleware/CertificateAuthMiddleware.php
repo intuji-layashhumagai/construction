@@ -2,11 +2,13 @@
 
 namespace App\Http\Middleware;
 
+use App\Actions\Auth\DetectCredentialSharingAction;
 use App\Actions\Auth\TrackCertificateUsageAction;
 use App\Actions\Auth\TrackDeviceUsageAction;
 use App\Actions\Auth\VerifyCertificateAction;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CertificateAuthMiddleware
@@ -58,6 +60,18 @@ class CertificateAuthMiddleware
             $deviceId,
             $serial
         );
+
+        // Check for suspicious activity
+        $sharingDetection = DetectCredentialSharingAction::handle($serial);
+        if ($sharingDetection['suspicious_activity']) {
+            // todo: display it in the dash board for suspicious activity
+            Log::warning('Suspicious certificate usage detected', [
+                'serial' => $serial,
+                'device_id' => $deviceId,
+                'risk_level' => $sharingDetection['risk_level'],
+                'issues' => $sharingDetection['issues'],
+            ]);
+        }
 
         return $next($request);
     }
