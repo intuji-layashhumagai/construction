@@ -7,4 +7,5 @@ return [
         'key_path' => base_path('certs/ca.key.pem'),
         'pass_phrase' => env('CA_PASS_PHRASE', ''),
     ],
+    'servers' => ['Server-A', 'Server-B', 'Server-C'],
 ];
