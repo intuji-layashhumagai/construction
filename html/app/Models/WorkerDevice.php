@@ -14,7 +14,10 @@ class WorkerDevice extends Model
         'worker_id',
         'device_id',
         'login_at',
+        'last_vc_sent',
         'logout_at',
+        'certificate_serial',
+        'certificate_issue_time',
         'session_status',
         'events_created',
     ];
@@ -25,6 +28,7 @@ class WorkerDevice extends Model
             'login_at' => 'datetime',
             'logout_at' => 'datetime',
             'events_created' => 'integer',
+            'last_vc_sent' => 'array',
         ];
     }
 
