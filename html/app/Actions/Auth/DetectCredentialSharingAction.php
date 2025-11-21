@@ -30,7 +30,6 @@ final class DetectCredentialSharingAction
         }
 
         $deviceCount = count(array_unique(array_column($usageData, 'device_id')));
-        $ipCount = count(array_unique(array_column($usageData, 'ip_address')));
 
         // Check concurrent device usage
         if ($deviceCount > $maxConcurrentDevice) {
