@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Actions\Auth\GenerateCertificateAction;
+use App\Actions\Auth\GenerateVectorClock;
 use App\Actions\Worker\GetSingleWorkerAction;
 use Illuminate\Support\Facades\Hash;
 
@@ -23,7 +24,9 @@ class AuthService
             ]);
         }
 
-        return GenerateCertificateAction::handle($worker);
+        $certificates = GenerateCertificateAction::handle($worker);
+        $vectorClock = GenerateVectorClock::handle();
 
+        return array_merge($certificates, ['vc' => $vectorClock]);
     }
 }
