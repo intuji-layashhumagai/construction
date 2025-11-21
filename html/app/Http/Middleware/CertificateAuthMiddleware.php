@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Actions\Auth\TrackCertificateUsageAction;
 use App\Actions\Auth\VerifyCertificateAction;
 use Closure;
 use Illuminate\Http\Request;
@@ -30,10 +31,10 @@ class CertificateAuthMiddleware
         // Verify certificate
         $verification = VerifyCertificateAction::handle($cleanPemString, $deviceId);
         $workerId = $verification['certificate_info']['subject']['OU'];
+        $serial = strtoupper($verification['certificate_info']['serialNumber']);
 
         if (! $verification['valid']) {
             // Check if emergency access is allowed
-
             $emergencyAllowed = VerifyCertificateAction::checkEmergencyAccess($workerId);
 
             return response()->json([
@@ -42,6 +43,13 @@ class CertificateAuthMiddleware
                 'emergency_access_available' => $emergencyAllowed,
             ], 401);
         }
+
+        // Track certificate usage for sharing prevention
+        TrackCertificateUsageAction::handle(
+            $serial,
+            $deviceId,
+            $request->ip()
+        );
 
         return $next($request);
     }
