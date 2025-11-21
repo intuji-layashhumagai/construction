@@ -106,3 +106,16 @@ services:
       start_period: 60s
     restart: unless-stopped
 
+  # Redis Insight for managing Redis data
+  csm-redis-insight:
+    image: redis/redisinsight
+    container_name: redis-insight
+    ports:
+      - '5540:5540'  # Redis Insight default port
+    networks:
+      - csm-network
+    environment:
+      REDIS_PORT: 6379  
+      REDIS_PASS: supersecretpassword  # Password for Redis
+    restart: unless-stopped
+
