@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\ProcessEventBatchJob;
+use Symfony\Component\HttpFoundation\Response;
 
 class SyncService
 {
@@ -15,14 +16,18 @@ class SyncService
      * integrated into the event store in the correct causal order while resolving
      * any conflicts that arise from concurrent modifications.
      */
-    public function processEventBatch(array $eventsFromDevice): void
+    public function processEventBatch(array $eventsFromDevice): ?Response
     {
         if (empty($eventsFromDevice)) {
-            return;
+            return null;
         }
 
         $deviceId = $eventsFromDevice[0]['device_id'];
 
         ProcessEventBatchJob::dispatch($deviceId, $eventsFromDevice);
+
+        return response()->json([
+            'success' => 'Sync Started Successfully',
+        ], 201);
     }
 }
