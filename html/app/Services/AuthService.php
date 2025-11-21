@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Actions\Auth\GenerateCertificateAction;
 use App\Actions\Auth\GenerateVectorClock;
+use App\Actions\Auth\StoreDeviceAction;
 use App\Actions\Worker\GetSingleWorkerAction;
 use App\Models\WorkerDevice;
 use Illuminate\Support\Facades\Hash;
@@ -38,5 +39,10 @@ class AuthService
         ]);
 
         return array_merge($certificates, ['vc' => $vectorClock]);
+    }
+
+    public function registerDevice(array $request)
+    {
+        return StoreDeviceAction::handle($request);
     }
 }
