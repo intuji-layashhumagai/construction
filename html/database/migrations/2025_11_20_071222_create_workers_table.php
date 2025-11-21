@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('pin_code')->nullable(); // For offline device login
             $table->boolean('pin_required')->default(true);
             $table->text('public_key')->nullable(); // For certificate authentication
+            $table->boolean('has_emergency_access')->default(false);
             $table->timestamps();
             $table->softDeletes();
 
