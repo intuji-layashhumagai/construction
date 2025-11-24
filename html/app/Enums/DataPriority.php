@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Sync;
+namespace App\Enums;
 
 enum DataPriority: int
 {
