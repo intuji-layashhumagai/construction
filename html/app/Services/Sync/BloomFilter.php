@@ -6,14 +6,27 @@ class BloomFilter
 {
     private array $bits;
 
-    // todo: calculate the size and hashCount
     private int $size;
 
-    private int $hashCount = 1000;
+    private int $hashCount;
 
-    public function __construct()
+    public function __construct(int $capacity, float $falsePositiveRate = 0.01)
     {
+        $this->size = $this->calculateSize($capacity, $falsePositiveRate);
+        $this->hashCount = $this->calculateHashCount($this->size, $capacity);
         $this->bits = array_fill(0, $this->size, false);
+    }
+
+    private function calculateSize(int $capacity, float $falsePositiveRate): int
+    {
+        // size = - (capacity * ln(falsePositiveRate)) / (ln(2)^2)
+        return (int) ceil(- ($capacity * log($falsePositiveRate)) / (log(2) ** 2));
+    }
+
+    private function calculateHashCount(int $size, int $capacity): int
+    {
+        // hashCount = (size / capacity) * ln(2)
+        return (int) ceil(($size / $capacity) * log(2));
     }
 
     public function add(string $item): void
@@ -51,13 +64,14 @@ class BloomFilter
 
     /**
      * Checks if the given item might exist in the Bloom filter.
+     *
      * @param  string  $item  The item to be checked for possible existence in the
      *                        Bloom filter.
      * @return bool Returns true if the item is possibly present, false if it
      *              is definitely not contained in the Bloom filter.
-     * If any bit is found to be false, the item is definitely not in the filter.
-     * If all bits are true, the item may be present (but could also be a false
-     * positive).
+     *              If any bit is found to be false, the item is definitely not in the filter.
+     *              If all bits are true, the item may be present (but could also be a false
+     *              positive).
      */
     public function possiblyContains(string $item): bool
     {
