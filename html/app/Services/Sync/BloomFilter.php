@@ -20,7 +20,7 @@ class BloomFilter
     private function calculateSize(int $capacity, float $falsePositiveRate): int
     {
         // size = - (capacity * ln(falsePositiveRate)) / (ln(2)^2)
-        return (int) ceil(- ($capacity * log($falsePositiveRate)) / (log(2) ** 2));
+        return (int) ceil(-($capacity * log($falsePositiveRate)) / (log(2) ** 2));
     }
 
     private function calculateHashCount(int $size, int $capacity): int
