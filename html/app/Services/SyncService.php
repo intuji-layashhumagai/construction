@@ -2,12 +2,15 @@
 
 namespace App\Services;
 
+use App\Actions\Sync\GetSingleSessionAction;
+use App\DTOs\SyncSession;
 use App\Jobs\ProcessEventBatchJob;
+use App\Services\Sync\SyncProtocol;
 use Symfony\Component\HttpFoundation\Response;
 
 class SyncService
 {
-    public function __construct() {}
+    public function __construct(private readonly SyncProtocol $syncProtocol) {}
 
     /**
      * Process a batch of events from an offline device.
@@ -29,5 +32,25 @@ class SyncService
         return response()->json([
             'success' => 'Sync Started Successfully',
         ], 201);
+    }
+
+    /**
+     * Process sync data using the new protocol.
+     */
+    public function processSyncData(string $sessionId, array $syncData): array
+    {
+        $session = GetSingleSessionAction::handle($sessionId);
+        if (! $session) {
+            throw new \Exception('Sync session not found');
+        }
+
+        $sessionData = SyncSession::fromArray($session->toArray());
+        $results = $this->syncProtocol->processSyncData($sessionData, $syncData);
+
+        return [
+            'session_id' => $sessionId,
+            'results' => $results,
+            'status' => 'processed',
+        ];
     }
 }
