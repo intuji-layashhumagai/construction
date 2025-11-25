@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\SyncController;
 use App\Http\Middleware\CertificateAuthMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -17,4 +18,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/register-device', [AuthController::class, 'registerDevice'])->name('registerDevice');
 
+});
+
+Route::middleware(CertificateAuthMiddleware::class)->prefix('sync')->group(function () {
+    Route::post('/initiate', [SyncController::class, 'sync'])->name('sync');
 });
