@@ -9,7 +9,7 @@ use DateTime;
 
 class SyncSession
 {
-    public string $sessionId;
+    public string $id;
 
     public string $deviceId;
 
@@ -31,15 +31,14 @@ class SyncSession
 
     public function __construct(array $config = [])
     {
-        $this->sessionId = $config['sessionId'] ?? $this->generateSessionId();
+        $this->id = $config['sessionId'] ?? $this->generateSessionId();
         $this->deviceId = $config['deviceId'] ?? '';
         $this->direction = $config['direction'] ?? SyncDirection::BIDIRECTIONAL;
-        $this->phase = $config['phase'] ?? SyncPhase::HANDSHAKE;
+        $this->phase = $config['phase'] ? SyncPhase::HANDSHAKE : $config['status'];
         $this->lastCheckpoint = $config['lastCheckpoint'] ?? null;
 
         $this->bytesTransferred = $config['bytesTransferred'] ?? 0;
-        $this->processedItems = $config['processedItems'] ?? [];
-        $this->currentVectorClock = $config['currentVectorClock'] ?? [];
+        $this->currentVectorClock = $config['vector_clock_state'] ?? [];
         $this->sequenceNumber = $config['sequenceNumber'] ?? 0;
         $this->deviceType = $config['deviceType'] ?? null;
     }
@@ -68,7 +67,7 @@ class SyncSession
     public function toArray(): array
     {
         return [
-            'sessionId' => $this->sessionId,
+            'sessionId' => $this->id,
             'deviceId' => $this->deviceId,
             'direction' => $this->direction->value,
             'phase' => $this->phase->value,
@@ -84,14 +83,14 @@ class SyncSession
     public static function fromArray(array $data): self
     {
         return new self([
-            'sessionId' => $data['sessionId'],
-            'deviceId' => $data['deviceId'],
+            'id' => $data['id'],
+            'deviceId' => $data['device_id'],
             'direction' => match ($data['direction']) {
                 'UPLOAD' => SyncDirection::UPLOAD,
                 'DOWNLOAD' => SyncDirection::DOWNLOAD,
                 default => SyncDirection::BIDIRECTIONAL,
             },
-            'phase' => match ($data['phase']) {
+            'phase' => isset($data['phase']) ? match ($data['phase']) {
                 'HANDSHAKE' => SyncPhase::HANDSHAKE,
                 'DISCOVERY' => SyncPhase::DISCOVERY,
                 'TRANSFER' => SyncPhase::TRANSFER,
@@ -99,14 +98,12 @@ class SyncSession
                 'COMPLETE' => SyncPhase::COMPLETE,
                 'RESUME' => SyncPhase::RESUME,
                 default => SyncPhase::HANDSHAKE,
-            },
+            } : $data['status'],
             'lastCheckpoint' => isset($data['lastCheckpoint']) ? Checkpoint::fromArray($data['lastCheckpoint']) : null,
-            'startTime' => new DateTime($data['startTime']),
-            'bytesTransferred' => $data['bytesTransferred'],
-            'processedItems' => $data['processedItems'],
-            'currentVectorClock' => $data['currentVectorClock'],
-            'sequenceNumber' => $data['sequenceNumber'],
-            'deviceType' => $data['deviceType'],
+            'startTime' => new DateTime($data['start_time']),
+            'bytesTransferred' => $data['bytes_transferred'],
+            'currentVectorClock' => $data['vector_clock_state'],
+
         ]);
     }
 }
