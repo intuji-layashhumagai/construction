@@ -3,16 +3,13 @@
 namespace App\Actions\Sync;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 final class MeasureBandwidthAction
 {
     private const CACHE_KEY = 'bandwidth_measurements';
-
-    private const TEST_URL = 'https://www.google.com/favicon.ico'; // Small test endpoint
-
-    private const TEST_SIZE_BYTES = 1000; // Approximate response size
 
     public static function handle(): int
     {
@@ -51,8 +48,9 @@ final class MeasureBandwidthAction
     private static function performBandwidthTest(): int
     {
         $startTime = microtime(true);
+        $testUrl = Config::get('project.sync.test_url', 'https://www.google.com/favicon.ico');
 
-        $response = Http::timeout(10)->get(self::TEST_URL);
+        $response = Http::timeout(10)->get($testUrl);
 
         if (! $response->successful()) {
             throw new \Exception('Bandwidth test request failed');
@@ -60,9 +58,10 @@ final class MeasureBandwidthAction
 
         $endTime = microtime(true);
         $duration = $endTime - $startTime;
+        $testSizeBytes = Config::get('project.sync.test_size_bytes', 1000);
 
         // Calculate bandwidth (bytes per second)
-        $bandwidth = (int) (self::TEST_SIZE_BYTES / $duration);
+        $bandwidth = (int) ($testSizeBytes / $duration);
 
         // Ensure reasonable bounds
         return max(50000, min(50000000, $bandwidth)); // 50KB/s to 50MB/s
@@ -77,8 +76,9 @@ final class MeasureBandwidthAction
         if (count($measurements) > 10) {
             $measurements = array_slice($measurements, -10);
         }
+        $bandwidthCacheTtl = Config::get('project.sync.bandwidth_cache_ttl', 1800);
 
-        Cache::put(self::CACHE_KEY, $measurements, now()->addMinutes(30));
+        Cache::put(self::CACHE_KEY, $measurements, $bandwidthCacheTtl);
     }
 
     public static function reset(): void
