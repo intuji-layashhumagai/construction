@@ -55,17 +55,16 @@ class SyncService
     }
 
     /**
-     * Resume a sync session from a checkpoint.
+     * Resume a sync session from a checkpoint and process sync data.
      */
-    public function resumeSync(string $checkpointId): array
+    public function resumeSync(string $checkpointId, array $syncData): array
     {
         $session = $this->syncProtocol->resumeSync($checkpointId);
+        $results = $this->syncProtocol->processSyncData($session, $syncData);
 
         return [
             'session_id' => $session->id,
-            'device_id' => $session->deviceId,
-            'phase' => $session->phase->value,
-            'checkpoint_id' => $checkpointId,
+            'results' => $results,
             'status' => 'resumed',
         ];
     }
