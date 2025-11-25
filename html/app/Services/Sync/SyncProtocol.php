@@ -14,11 +14,8 @@ class SyncProtocol
 {
     public function __construct() {}
 
-    public function initiateSync(
-        string $deviceId,
-        SyncDirection $direction,
-        string $workerId
-    ): string {
+    public function initiateSync(string $deviceId, SyncDirection $direction, string $workerId): string
+    {
         $session = new DTOsSyncSession([
             'deviceId' => $deviceId,
             'direction' => $direction,
