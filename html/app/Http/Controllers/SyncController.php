@@ -36,4 +36,13 @@ class SyncController extends Controller
 
         return $processedSyncData;
     }
+
+    public function syncSchedule(SyncEventProtocolRequest $request, string $sessionId)
+    {
+
+        $syncData = $request->validated()['events'];
+        $processedSyncData = $this->syncService->scheduleSync($sessionId, $syncData);
+
+        return $processedSyncData;
+    }
 }
