@@ -54,6 +54,10 @@ final class ProcessSyncDataAction
 
             SyncTransactionAction::commit();
 
+            // Create checkpoint
+            $checkpoint = CreateCheckpointAction::handle($session);
+            $session->lastCheckpoint = $checkpoint;
+
             Log::info('Sync data processed successfully', [
                 'sessionId' => $session->id,
                 'processed' => $results['processed'],
