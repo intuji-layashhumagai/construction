@@ -22,4 +22,6 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware(CertificateAuthMiddleware::class)->prefix('sync')->group(function () {
     Route::post('/initiate', [SyncController::class, 'sync'])->name('sync');
+    Route::post('/process/{sessionId}', [SyncController::class, 'syncProcess'])->name('syncProcess');
+    Route::post('/resume/{sessionId}', [SyncController::class, 'syncResume'])->name('syncResume');
 });
