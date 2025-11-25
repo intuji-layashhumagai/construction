@@ -4,7 +4,6 @@ namespace App\DTOs;
 
 use App\Enums\SyncDirection;
 use App\Enums\SyncPhase;
-use App\Services\Sync\Checkpoint;
 use DateTime;
 
 class SyncSession
