@@ -73,6 +73,8 @@ class CertificateAuthMiddleware
             ]);
         }
 
+        $request->merge(['worker_id' => $workerId]);
+
         return $next($request);
     }
 }
