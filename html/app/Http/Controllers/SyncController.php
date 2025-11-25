@@ -28,7 +28,7 @@ class SyncController extends Controller
 
         return $processedSyncData;
     }
-    
+
     public function syncResume(SyncEventProtocolRequest $request, string $sessionId)
     {
         $syncData = $request->validated()['events'];
