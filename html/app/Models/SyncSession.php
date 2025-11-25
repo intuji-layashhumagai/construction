@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SyncSession extends Model
 {
+    use HasUuids;
+
     // Define the fillable attributes
     protected $fillable = [
+        'id',
         'device_id',
         'worker_id',
         'direction',
