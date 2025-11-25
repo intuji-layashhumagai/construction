@@ -5,6 +5,7 @@ namespace App\Actions\Sync;
 use App\Actions\Event\ProcessSingleEventAction;
 use App\DTOs\SyncItem;
 use App\DTOs\SyncSession;
+use App\Services\Sync\PriorityQueue;
 use App\Services\Sync\SyncOperation;
 use App\Services\Sync\SyncOperationImplementation;
 use Illuminate\Support\Facades\Log;
@@ -21,10 +22,18 @@ final class ProcessSyncDataAction
             'duplicates' => 0,
             'errors' => 0,
         ];
+        $priorityQueue = new PriorityQueue;
 
         try {
+            // Enqueue all items with priority
             foreach ($syncData as $itemData) {
                 $item = SyncItem::fromArray($itemData);
+                $priorityQueue->enqueue($item);
+            }
+
+            // Process in priority order
+            while (! $priorityQueue->isEmpty()) {
+                $item = $priorityQueue->dequeue();
 
                 // Check for duplicates
                 if (DuplicateDetectorAction::isDuplicate($item)) {
