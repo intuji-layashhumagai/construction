@@ -55,7 +55,7 @@ final class ProcessSyncDataAction
             SyncTransactionAction::commit();
 
             Log::info('Sync data processed successfully', [
-                'sessionId' => $session->sessionId,
+                'sessionId' => $session->id,
                 'processed' => $results['processed'],
                 'conflicts' => $results['conflicts'],
                 'duplicates' => $results['duplicates'],
@@ -65,7 +65,7 @@ final class ProcessSyncDataAction
             SyncTransactionAction::rollback();
             $results['errors']++;
             Log::error('Sync processing failed', [
-                'sessionId' => $session->sessionId,
+                'sessionId' => $session->id,
                 'error' => $e->getMessage(),
             ]);
             throw $e;
@@ -77,7 +77,7 @@ final class ProcessSyncDataAction
     private static function getExistingItem(SyncItem $item): ?SyncItem
     {
         // todo: query from database to get actual items
-        return null;
+        return $item;
     }
 
     private static function createSyncOperation(SyncItem $item): SyncOperation
