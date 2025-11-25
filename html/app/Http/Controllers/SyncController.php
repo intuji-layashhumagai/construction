@@ -21,10 +21,18 @@ class SyncController extends Controller
         return $initiatedSync;
     }
 
-    public function syncData(SyncEventProtocolRequest $request, string $sessionId)
+    public function syncProcess(SyncEventProtocolRequest $request, string $sessionId)
     {
         $syncData = $request->validated()['events'];
         $processedSyncData = $this->syncService->processSyncData($sessionId, $syncData);
+
+        return $processedSyncData;
+    }
+    
+    public function syncResume(SyncEventProtocolRequest $request, string $sessionId)
+    {
+        $syncData = $request->validated()['events'];
+        $processedSyncData = $this->syncService->resumeSync($sessionId, $syncData);
 
         return $processedSyncData;
     }
