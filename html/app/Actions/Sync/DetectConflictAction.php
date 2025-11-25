@@ -13,6 +13,9 @@ final class DetectConflictAction
     public static function handle(SyncItem $local, SyncItem $remote, ProcessSingleEventAction $vectorClock): array
     {
         $conflicts = [];
+        if (empty($local) || empty($remote)) {
+            return $conflicts;
+        }
 
         if (self::isSameLogicalItem($local, $remote)) {
             $conflict = self::analyzeConflict($local, $remote, $vectorClock);
