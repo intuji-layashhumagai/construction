@@ -48,4 +48,27 @@ class BloomFilter
 
         return $hashes;
     }
+
+    /**
+     * Checks if the given item might exist in the Bloom filter.
+     * @param  string  $item  The item to be checked for possible existence in the
+     *                        Bloom filter.
+     * @return bool Returns true if the item is possibly present, false if it
+     *              is definitely not contained in the Bloom filter.
+     * If any bit is found to be false, the item is definitely not in the filter.
+     * If all bits are true, the item may be present (but could also be a false
+     * positive).
+     */
+    public function possiblyContains(string $item): bool
+    {
+        $hashes = $this->getHashes($item);
+
+        foreach ($hashes as $hash) {
+            if (! $this->bits[$hash % $this->size]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
