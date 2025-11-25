@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Sync\SyncProtocol;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +12,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+
+        $this->app->singleton(SyncProtocol::class, function () {
+            return new SyncProtocol;
+        });
     }
 
     /**
