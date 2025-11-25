@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Log;
 
 class SyncOperationImplementation implements SyncOperation
 {
-    
     private SyncItem $syncItem;
 
     public function __construct(SyncItem $item)
@@ -31,7 +30,7 @@ class SyncOperationImplementation implements SyncOperation
             'timestamp' => $this->syncItem->timestamp->format('c'),
         ]);
 
-       Event::create([
+        Event::create([
             'entity_type' => $this->syncItem->type,
             'entity_id' => $this->syncItem->entityId,
             'event_type' => $this->syncItem->type,
