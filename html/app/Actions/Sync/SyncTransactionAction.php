@@ -9,15 +9,13 @@ use Illuminate\Support\Facades\Log;
 
 final class SyncTransactionAction
 {
-    private static $dbTransaction;
-
     private static array $operations = [];
 
     private static bool $committed = false;
 
     public static function begin(): void
     {
-        self::$dbTransaction = DB::beginTransaction();
+        DB::beginTransaction();
         self::$operations = [];
         self::$committed = false;
     }
@@ -49,7 +47,7 @@ final class SyncTransactionAction
             }
 
             // Commit database transaction
-            self::$dbTransaction->commit();
+            DB::commit();
             self::$committed = true;
 
         } catch (Exception $e) {
@@ -85,7 +83,7 @@ final class SyncTransactionAction
         }
 
         // Rollback database transaction
-        self::$dbTransaction->rollBack();
+        DB::rollBack();
     }
 
     public static function isCommitted(): bool
