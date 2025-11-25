@@ -4,6 +4,7 @@ namespace App\DTOs;
 
 use App\Enums\DataPriority;
 use DateTime;
+use Illuminate\Support\Str;
 
 class SyncItem
 {
@@ -38,7 +39,7 @@ class SyncItem
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
+            'id' => $this->id ?? Str::uuid(),
             'type' => $this->type,
             'data' => $this->data,
             'vector_clock' => $this->vectorClock,
@@ -60,9 +61,9 @@ class SyncItem
     public static function fromArray(array $data): self
     {
         return new self(
-            id: $data['id'],
-            type: $data['type'],
-            data: $data['data'],
+            id: $data['id'] ?? Str::uuid(),
+            type: $data['event_type'],
+            data: $data['event_data'],
             vectorClock: $data['vector_clock'] ?? [],
             workerId: $data['worker_id'] ?? null,
             deviceId: $data['device_id'] ?? null,
