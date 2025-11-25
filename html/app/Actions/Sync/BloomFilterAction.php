@@ -22,4 +22,9 @@ final class BloomFilterAction
     {
         $filter->add($item);
     }
+
+    public static function possiblyContains(BloomFilter $filter, string $item): bool
+    {
+        return $filter->possiblyContains($item);
+    }
 }
