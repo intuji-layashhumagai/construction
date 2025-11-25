@@ -7,7 +7,7 @@ use App\Services\Sync\BloomFilter;
 
 final class DuplicateDetectorAction
 {
-    private static BloomFilter $bloomFilter;
+    private static ?BloomFilter $bloomFilter = null;
 
     private static array $recentIds = [];
 
@@ -20,6 +20,9 @@ final class DuplicateDetectorAction
 
     public static function isDuplicate(SyncItem $item): bool
     {
+        if (self::$bloomFilter === null) {
+            self::init();
+        }
         $itemId = self::generateItemId($item);
 
         // Quick check with bloom filter
