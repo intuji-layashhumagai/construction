@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Services\Sync;
+namespace App\Actions\Sync;
 
 use DateTime;
 
-class ScheduleResult
+class ScheduleResultAction
 {
     public function __construct(
         public bool $immediate = false,
