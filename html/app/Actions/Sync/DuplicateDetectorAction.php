@@ -45,12 +45,12 @@ final class DuplicateDetectorAction
 
     private static function generateItemId(SyncItem $item): string
     {
+        // Generate hash based on event content for duplicate detection
+        // This ensures events with identical type, entity, and data are detected as duplicates
         return hash('sha256', json_encode([
             'type' => $item->type,
-            'device_id' => $item->deviceId,
-            'logical_id' => $item->logicalId,
-            'content_hash' => $item->contentHash,
             'entity_id' => $item->entityId,
+            'data' => $item->data,  // Include event data for content-based duplicate detection
         ]));
     }
 
