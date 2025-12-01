@@ -3,6 +3,7 @@
 namespace App\Actions\Sync;
 
 use App\DTOs\SyncItem;
+use App\Models\Event;
 use App\Services\Sync\BloomFilter;
 
 final class DuplicateDetectorAction
@@ -32,7 +33,15 @@ final class DuplicateDetectorAction
                 return true;
             }
 
-            // todo: Check database for if the event exist
+            // Check database for existing event with same content
+            $existingEvent = Event::where('entity_id', $item->entityId)
+                ->where('event_type', $item->type)
+                ->where('event_data', json_encode($item->data))
+                ->exists();
+
+            if ($existingEvent) {
+                return true;
+            }
 
         }
 
