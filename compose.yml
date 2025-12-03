@@ -84,7 +84,6 @@ services:
     container_name: csm-api
     build:
       context: .
-      dockerfile: Dockerfile
       args:
         USER_ID: ${USER_ID:-1000}
         GROUP_ID: ${GROUP_ID:-1000}
