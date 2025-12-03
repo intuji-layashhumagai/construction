@@ -32,8 +32,15 @@ class SyncSession
     {
         $this->id = $config['sessionId'] ?? $this->generateSessionId();
         $this->deviceId = $config['deviceId'] ?? '';
-        $this->direction = $config['direction'] ?? SyncDirection::BIDIRECTIONAL;
-        $this->phase = $config['phase'] ? SyncPhase::HANDSHAKE : $config['status'];
+        $this->direction = $config['direction'] instanceof SyncDirection
+            ? $config['direction']
+            : match (strtoupper($config['direction'] ?? 'BIDIRECTIONAL')) {
+                'UPLOAD' => SyncDirection::UPLOAD,
+                'DOWNLOAD' => SyncDirection::DOWNLOAD,
+                'BIDIRECTIONAL' => SyncDirection::BIDIRECTIONAL,
+                default => SyncDirection::BIDIRECTIONAL,
+            };
+        $this->phase = $config['phase'] ?? ($config['status'] ? SyncPhase::tryFrom($config['status']) ?? SyncPhase::HANDSHAKE : SyncPhase::HANDSHAKE);
         $this->lastCheckpoint = $config['lastCheckpoint'] ?? null;
 
         $this->bytesTransferred = $config['bytesTransferred'] ?? 0;
