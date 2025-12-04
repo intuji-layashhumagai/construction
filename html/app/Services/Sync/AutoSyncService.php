@@ -39,33 +39,22 @@ class AutoSyncService
             $criticalItems = $this->filterCriticalItems($pendingItems);
             $hasCriticalItems = ! empty($criticalItems);
 
-            // Check if auto-sync should be initiated based on scheduler
-            $shouldSync = $this->syncScheduler->shouldInitiateAutoSync($deviceId, $hasCriticalItems);
+            // Initiate sync session
+            $sessionId = $this->initiateAutoSyncSession($deviceId, $hasCriticalItems);
 
-            if (! $shouldSync) {
-                $result = [
-                    'status' => 'scheduled',
-                    'message' => 'Auto-sync scheduled for later',
-                    'next_sync' => $this->syncScheduler->getNextSyncTime($deviceId),
-                ];
-            } else {
-                // Initiate sync session
-                $sessionId = $this->initiateAutoSyncSession($deviceId, $hasCriticalItems);
+            Log::info('Auto-sync initiated', [
+                'device_id' => $deviceId,
+                'session_id' => $sessionId,
+                'critical_items' => count($criticalItems),
+                'total_items' => count($pendingItems),
+            ]);
 
-                Log::info('Auto-sync initiated', [
-                    'device_id' => $deviceId,
-                    'session_id' => $sessionId,
-                    'critical_items' => count($criticalItems),
-                    'total_items' => count($pendingItems),
-                ]);
-
-                $result = [
-                    'status' => 'initiated',
-                    'session_id' => $sessionId,
-                    'critical_items_count' => count($criticalItems),
-                    'total_items_count' => count($pendingItems),
-                ];
-            }
+            $result = [
+                'status' => 'initiated',
+                'session_id' => $sessionId,
+                'critical_items_count' => count($criticalItems),
+                'total_items_count' => count($pendingItems),
+            ];
         }
 
         return $result;
