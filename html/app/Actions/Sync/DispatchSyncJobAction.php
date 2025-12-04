@@ -35,15 +35,17 @@ final class DispatchSyncJobAction
         } catch (\Exception $e) {
             // If job dispatch fails, quarantine all events
             info($e);
-            QuarantineInvalidEventsAction::handle(
-                $syncContext->processedEvents,
-                $syncContext->processedEvents,
-                $syncContext->sessionId,
-                $syncContext->deviceId,
-                $syncContext->workerId,
-                $syncContext->serverReceivedAt,
-                [['message' => 'Job dispatch failed: '.$e->getMessage()]]
+            $quarantineContext = \App\DTOs\QuarantineContext::create(
+                invalidEvents: $syncContext->processedEvents, // All events failed due to job dispatch error
+                processedEvents: $syncContext->processedEvents,
+                sessionId: $syncContext->sessionId,
+                deviceId: $syncContext->deviceId,
+                workerId: $syncContext->workerId,
+                serverReceivedAt: $syncContext->serverReceivedAt,
+                violations: [['message' => 'Job dispatch failed: '.$e->getMessage()]]
             );
+
+            QuarantineInvalidEventsAction::handle($quarantineContext);
 
             $session = SyncSession::find($syncContext->sessionId);
             if ($session) {
