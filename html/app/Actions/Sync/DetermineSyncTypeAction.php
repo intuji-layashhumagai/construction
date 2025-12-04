@@ -38,7 +38,7 @@ final class DetermineSyncTypeAction
             ->orderBy('last_activity_time', 'desc')
             ->first();
 
-        return $session && !empty($session->last_checkpoint);
+        return $session && ! empty($session->last_checkpoint);
     }
 
     /**
