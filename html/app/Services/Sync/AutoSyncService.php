@@ -9,7 +9,6 @@ use App\Enums\SyncDirection;
 use App\Models\Device;
 use App\Models\Event;
 use App\Models\SyncSession;
-use App\Services\ConnectivityDetector;
 use App\Services\SyncScheduler;
 use Illuminate\Support\Facades\Log;
 
@@ -17,7 +16,6 @@ class AutoSyncService
 {
     public function __construct(
         private readonly SyncProtocol $syncProtocol,
-        private readonly ConnectivityDetector $connectivityDetector,
         private readonly SyncScheduler $syncScheduler
     ) {}
 
@@ -29,11 +27,6 @@ class AutoSyncService
         $device = Device::find($deviceId);
         if (! $device) {
             return ['status' => 'error', 'message' => 'Device not found'];
-        }
-
-        // Check if device is online
-        if (! $this->connectivityDetector->isDeviceOnline($deviceId)) {
-            return ['status' => 'offline', 'message' => 'Device is offline'];
         }
 
         // Check if there are pending sync items
