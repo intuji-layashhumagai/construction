@@ -15,8 +15,7 @@ use Illuminate\Support\Facades\Log;
 class AutoSyncService
 {
     public function __construct(
-        private readonly SyncProtocol $syncProtocol,
-        private readonly SyncScheduler $syncScheduler
+        private readonly SyncProtocol $syncProtocol
     ) {}
 
     /**
