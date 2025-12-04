@@ -14,10 +14,10 @@ final class GenerateCertificateAction
     public static function handle(Worker $worker): array
     {
         // Load CA credentials
-        $caCert = file_get_contents(config('project.auth.cert_path'));
-        $caKey = file_get_contents(config('project.auth.key_path'));
-        $passphrase = config('project.auth.pass_phrase');
-        $validityDays = config('project.auth.certification_valid_day');
+        $caCert = file_get_contents(config('project.auth.certificates.cert_path'));
+        $caKey = file_get_contents(config('project.auth.certificates.key_path'));
+        $passphrase = config('project.auth.certificates.pass_phrase');
+        $validityDays = config('project.auth.certificates.certification_valid_day');
 
         $caPrivateKey = openssl_pkey_get_private($caKey, $passphrase);
 
