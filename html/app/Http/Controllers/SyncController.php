@@ -2,47 +2,84 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\SyncDirection;
+use App\Actions\Sync\DetermineSyncTypeAction;
+use App\Actions\Sync\DispatchSyncJobAction;
+use App\Actions\Sync\PrepareSyncSessionAction;
+use App\Actions\Sync\ProcessAndValidateEventsAction;
+use App\Enums\SyncType;
 use App\Http\Requests\SyncEventProtocolRequest;
-use App\Http\Requests\SyncEventRequest;
-use App\Services\Sync\SyncProtocol;
+use App\Services\Sync\AutoSyncService;
+use App\Services\SyncResponseBuilder;
 use App\Services\SyncService;
 
 class SyncController extends Controller
 {
-    public function __construct(private readonly SyncProtocol $syncProtocol, private readonly SyncService $syncService) {}
+    public function __construct(
+        private readonly SyncService $syncService,
+        private readonly AutoSyncService $autoSyncService,
+        private readonly ProcessAndValidateEventsAction $processAndValidateEventsAction
+    ) {}
 
-    public function sync(SyncEventRequest $request)
+    /**
+     * Single intelligent sync endpoint that handles everything with high-performance async processing
+     */
+    public function intelligentSync(SyncEventProtocolRequest $request)
     {
         $deviceId = $request->validated()['events'][0]['device_id'];
         $workerId = $request->worker_id;
-        $initiatedSync = $this->syncProtocol->initiateSync($deviceId, SyncDirection::UPLOAD, $workerId);
+        $syncData = $request->validated()['events'];
 
-        return $initiatedSync;
+        // Determine if this is a new sync or resume
+        $syncType = DetermineSyncTypeAction::handle($deviceId, $syncData);
+
+        if ($syncType === SyncType::RESUME) {
+            return $this->handleResumeSync($deviceId, $syncData);
+        }
+
+        // Prepare sync session and process events
+        $syncContext = PrepareSyncSessionAction::handle($deviceId, $workerId, $syncData);
+
+        // Process and validate events
+        $validationResult = $this->processAndValidateEventsAction->handle($syncContext);
+
+        if (! $validationResult['is_valid']) {
+            return SyncResponseBuilder::validationError($syncContext, $validationResult);
+        }
+
+        // Dispatch sync job for valid events
+        return DispatchSyncJobAction::handle($syncContext, $validationResult['valid_events'], $request);
     }
 
-    public function syncProcess(SyncEventProtocolRequest $request, string $sessionId)
+    /**
+     * Handle resume sync scenario
+     */
+    private function handleResumeSync(string $deviceId, array $syncData): \Illuminate\Http\JsonResponse
     {
-        $syncData = $request->validated()['events'];
-        $processedSyncData = $this->syncService->processSyncData($sessionId, $syncData);
+        try {
+            $result = $this->autoSyncService->resumeAutoSync($deviceId);
 
-        return $processedSyncData;
-    }
+            if ($result['status'] === 'resumed') {
+                // Process the resumed sync data
+                $sessionId = $result['session_id'];
+                $processResult = $this->syncService->processSyncData($sessionId, $syncData);
 
-    public function syncResume(SyncEventProtocolRequest $request, string $sessionId)
-    {
-        $syncData = $request->validated()['events'];
-        $processedSyncData = $this->syncService->resumeSync($sessionId, $syncData);
+                return SyncResponseBuilder::resumeSuccess([
+                    'status' => 'resumed_and_processed',
+                    'session_id' => $sessionId,
+                    'sync_type' => 'resume',
+                    'checkpoint' => $result['checkpoint'],
+                    'processed_events' => count($syncData),
+                    'result' => $processResult,
+                ]);
+            }
 
-        return $processedSyncData;
-    }
+            return response()->json($result, 400);
 
-    public function syncSchedule(SyncEventProtocolRequest $request, string $sessionId)
-    {
-
-        $syncData = $request->validated()['events'];
-        $processedSyncData = $this->syncService->scheduleSync($sessionId, $syncData);
-
-        return $processedSyncData;
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'resume_failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
