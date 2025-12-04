@@ -32,7 +32,7 @@ class WorkerSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
                 'deleted_at' => null,
-                'has_emergency_access'=>true
+                'has_emergency_access' => true,
             ],
             [
                 'id' => (string) Str::uuid(),
@@ -51,7 +51,7 @@ class WorkerSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
                 'deleted_at' => null,
-                 'has_emergency_access'=>false
+                'has_emergency_access' => false,
             ],
             [
                 'id' => (string) Str::uuid(),
@@ -70,7 +70,7 @@ class WorkerSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
                 'deleted_at' => null,
-                 'has_emergency_access'=>false
+                'has_emergency_access' => false,
             ],
 
         ];
