@@ -8,5 +8,6 @@ enum NetworkQuality: string
     case GOOD = 'good';
     case FAIR = 'fair';
     case POOR = 'poor';
+    case OFFLINE = 'offline';
     case UNKNOWN = 'unknown';
 }
