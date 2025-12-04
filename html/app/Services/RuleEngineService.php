@@ -15,7 +15,7 @@ class RuleEngineService
     /**
      * Validate an event against applicable business rules
      */
-    public function validateEvent(object|array $event, array $context = []): ValidationResult
+    public function validateEvent(object|array $event, array $context = []): array
     {
         // Normalize the event data to ensure we have the required properties
         $normalizedEvent = $this->normalizeEvent($event);
@@ -38,10 +38,10 @@ class RuleEngineService
             }
         }
 
-        return new ValidationResult(
-            empty($violations),
-            $violations
-        );
+        return [
+            'isValid' => empty($violations),
+            'violations' => $violations
+        ];
     }
 
     /**
@@ -147,11 +147,11 @@ class RuleEngineService
     private function evaluateConditionTree(array $condition, array $data): bool
     {
         if (isset($condition['and'])) {
-            return collect($condition['and'])->every(fn ($c) => $this->evaluateConditionTree($c, $data));
+            return collect($condition['and'])->every(fn($c) => $this->evaluateConditionTree($c, $data));
         }
 
         if (isset($condition['or'])) {
-            return collect($condition['or'])->contains(fn ($c) => $this->evaluateConditionTree($c, $data));
+            return collect($condition['or'])->contains(fn($c) => $this->evaluateConditionTree($c, $data));
         }
 
         if (isset($condition['not'])) {
