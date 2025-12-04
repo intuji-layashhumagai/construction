@@ -1,16 +1,13 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\EventController;
+use App\Http\Controllers\RuleSyncController;
 use App\Http\Controllers\SyncController;
 use App\Http\Middleware\CertificateAuthMiddleware;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(CertificateAuthMiddleware::class)->prefix('events')->group(function () {
-    // Store new event
-    Route::post('/', [EventController::class, 'store'])->name('storeEvent');
-    Route::post('/sync', [EventController::class, 'sync'])->name('syncEvent');
-
+Route::get('/', function () {
+    return response()->json(['message' => 'Welcome to the API']);
 });
 
 Route::prefix('auth')->group(function () {
@@ -20,9 +17,10 @@ Route::prefix('auth')->group(function () {
 
 });
 
-Route::middleware(CertificateAuthMiddleware::class)->prefix('sync')->group(function () {
-    Route::post('/initiate', [SyncController::class, 'sync'])->name('sync');
-    Route::post('/process/{sessionId}', [SyncController::class, 'syncProcess'])->name('syncProcess');
-    Route::post('/resume/{sessionId}', [SyncController::class, 'syncResume'])->name('syncResume');
-    Route::post('/schedule/{sessionId}', [SyncController::class, 'syncSchedule'])->name('syncSchedule');
+Route::middleware(CertificateAuthMiddleware::class)->group(function () {
+    // Single intelligent sync endpoint - handles new sync, resume, and validation
+    Route::post('/sync', [SyncController::class, 'intelligentSync'])->name('sync');
+
+    // Check sync status for async operations
+    Route::get('/sync/{sessionId}/status', [SyncController::class, 'checkSyncStatus'])->name('sync.status');
 });
