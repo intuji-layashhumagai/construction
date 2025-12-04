@@ -10,6 +10,11 @@ if [[ ! -f "${APP_ENV_FILE}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "./html/certs/ca.cert.pem" ]]; then
+  echo "Generating self-signed CA certificate..."
+  openssl req -x509 -newkey rsa:2048 -keyout ./html/certs/ca.key.pem -out ./html/certs/ca.cert.pem -days 3650 -subj "/C=NP/ST=Bagmati/L=Kathmandu/O=Intuji/CN=layash/emailAddress=layash.humagai@intuji.com" -nodes
+fi
+
 # Set current user IDs in the environment
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
