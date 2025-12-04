@@ -11,6 +11,7 @@ if [[ ! -f "${APP_ENV_FILE}" ]]; then
 fi
 
 if [[ ! -f "./html/certs/ca.cert.pem" ]]; then
+  mkdir -p ./html/certs
   echo "Generating self-signed CA certificate..."
   openssl req -x509 -newkey rsa:2048 -keyout ./html/certs/ca.key.pem -out ./html/certs/ca.cert.pem -days 3650 -subj "/C=NP/ST=Bagmati/L=Kathmandu/O=Intuji/CN=layash/emailAddress=layash.humagai@intuji.com" -nodes
 fi
