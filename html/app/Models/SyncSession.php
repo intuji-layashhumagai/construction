@@ -22,6 +22,14 @@ class SyncSession extends Model
         'bytes_transferred',
         'start_time',
         'last_activity_time',
+        'job_id',
+        'estimated_events',
+        'actual_events_processed',
+        'throughput_eps',
+        'processing_duration_seconds',
+        'conflicts_detected',
+        'duplicates_found',
+        'errors_encountered',
     ];
 
     // Cast JSON fields
@@ -32,6 +40,13 @@ class SyncSession extends Model
             'last_checkpoint' => 'array',
             'start_time' => 'datetime',
             'last_activity_time' => 'datetime',
+            'estimated_events' => 'integer',
+            'actual_events_processed' => 'integer',
+            'throughput_eps' => 'decimal:2',
+            'processing_duration_seconds' => 'decimal:3',
+            'conflicts_detected' => 'integer',
+            'duplicates_found' => 'integer',
+            'errors_encountered' => 'integer',
         ];
     }
 
@@ -44,5 +59,21 @@ class SyncSession extends Model
     public function worker(): BelongsTo
     {
         return $this->belongsTo(Worker::class, 'worker_id');
+    }
+
+    /**
+     * Get current vector clock (alias for vector_clock_state for VectorClockAction compatibility)
+     */
+    public function getCurrentVectorClockAttribute(): array
+    {
+        return $this->vector_clock_state ?? [];
+    }
+
+    /**
+     * Set current vector clock (alias for vector_clock_state for VectorClockAction compatibility)
+     */
+    public function setCurrentVectorClockAttribute(array $clock): void
+    {
+        $this->vector_clock_state = $clock;
     }
 }
