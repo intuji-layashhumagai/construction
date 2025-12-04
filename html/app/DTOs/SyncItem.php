@@ -24,7 +24,8 @@ class SyncItem
         public bool $isSafetyCritical = false,
         public bool $isRealTime = false,
         public ?array $conflictedFields = null,
-        public ?string $mergeStatus = null
+        public ?string $mergeStatus = null,
+        public ?array $merged_vector_clock = null
     ) {
         $this->timestamp = $timestamp ?? now();
     }
@@ -76,7 +77,8 @@ class SyncItem
             isSafetyCritical: $data['is_safety_critical'] ?? false,
             isRealTime: $data['is_real_time'] ?? false,
             conflictedFields: $data['conflicted_fields'] ?? null,
-            mergeStatus: $data['merge_status'] ?? null
+            mergeStatus: $data['merge_status'] ?? null,
+            merged_vector_clock: $data['merged_vector_clock'] ?? null
         );
     }
 }
