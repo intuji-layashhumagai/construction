@@ -1,6 +1,6 @@
 <?php
 
-namespace App\DTOs;
+namespace App\Enums;
 
 enum ResolutionStrategy: string
 {
