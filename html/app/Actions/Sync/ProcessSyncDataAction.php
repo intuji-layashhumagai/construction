@@ -5,6 +5,7 @@ namespace App\Actions\Sync;
 use App\Actions\Event\ProcessSingleEventAction;
 use App\DTOs\SyncItem;
 use App\DTOs\SyncSession;
+use App\Models\Event;
 use App\Services\Sync\PriorityQueue;
 use App\Services\Sync\SyncOperation;
 use App\Services\Sync\SyncOperationImplementation;
