@@ -32,7 +32,7 @@ final class ProcessAndValidateEventsAction
             );
 
             QuarantineInvalidEventsAction::handle($quarantineContext);
-            $this->markSessionFailed($syncContext->sessionId, $validationResults['violations']);
+            self::markSessionFailed($syncContext->sessionId, $validationResults['violations']);
 
             return [
                 'is_valid' => false,
@@ -79,7 +79,7 @@ final class ProcessAndValidateEventsAction
         ];
     }
 
-    private function markSessionFailed(string $sessionId, array $violations): void
+    private static function markSessionFailed(string $sessionId, array $violations): void
     {
         $session = SyncSession::find($sessionId);
         if ($session) {
