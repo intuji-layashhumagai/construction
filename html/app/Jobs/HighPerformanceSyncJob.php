@@ -295,7 +295,7 @@ class HighPerformanceSyncJob implements ShouldQueue
         $storedSession = ModelsSyncSession::find($this->sessionId);
         if ($storedSession) {
             $storedSession->update([
-                'status' => 'completed',
+                'status' => SyncPhase::COMPLETE->value,
                 'bytes_transferred' => $storedSession->bytes_transferred + strlen(json_encode($this->syncData)),
                 'last_activity_time' => now(),
                 'actual_events_processed' => $this->metricsTracker->getMetrics()['events_processed'],
