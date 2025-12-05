@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Constants\Queue;
 use App\DTOs\SyncContext;
 use App\Enums\SyncType;
 use Illuminate\Http\JsonResponse;
@@ -21,7 +22,7 @@ class SyncResponseBuilder
             'quarantined_events' => 0,
             'violations' => [],
             'estimated_events' => count($validEvents),
-            'queue_name' => \App\Jobs\HighPerformanceSyncJob::QUEUE_NAME,
+            'queue_name' => config('project.sync.job.queue_name', Queue::HIGH_PERFORMANCE_SYNC),
             'estimated_completion' => self::estimateCompletionTime(count($validEvents)),
             'server_timestamp' => $context->serverReceivedAt,
             'message' => 'All events processed successfully.',
