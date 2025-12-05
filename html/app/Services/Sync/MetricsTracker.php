@@ -7,13 +7,17 @@ use Illuminate\Support\Facades\Redis;
 final class MetricsTracker
 {
     private array $metrics;
+
     private string $sessionId;
+
     private float $startTime;
 
     public function __construct(string $sessionId, int $totalEvents)
     {
         $this->sessionId = $sessionId;
         $this->startTime = microtime(true);
+        $redisPrefix = config('project.sync.job.monitoring.redis_prefix', 'sync_metrics');
+
         $this->metrics = [
             'start_time' => $this->startTime,
             'end_time' => null,
@@ -24,12 +28,13 @@ final class MetricsTracker
             'duplicates_found' => 0,
             'errors_encountered' => 0,
             'throughput_eps' => 0.0,
+            'redis_key' => "{$redisPrefix}:{$sessionId}",
         ];
     }
 
     public function initialize(): void
     {
-        Redis::hmset("sync_metrics:{$this->sessionId}", [
+        Redis::hmset($this->metrics['redis_key'], [
             'status' => 'processing',
             'start_time' => $this->metrics['start_time'],
             'events_total' => $this->metrics['events_total'],
@@ -47,7 +52,7 @@ final class MetricsTracker
         $elapsed = microtime(true) - $this->startTime;
         $this->metrics['throughput_eps'] = $this->metrics['events_processed'] / max($elapsed, 0.001);
 
-        Redis::hmset("sync_metrics:{$this->sessionId}", [
+        Redis::hmset($this->metrics['redis_key'], [
             'events_processed' => $this->metrics['events_processed'],
             'chunks_processed' => $this->metrics['chunks_processed'],
             'throughput_eps' => round($this->metrics['throughput_eps'], 2),
@@ -72,7 +77,7 @@ final class MetricsTracker
 
     public function markCompleted(): void
     {
-        Redis::hmset("sync_metrics:{$this->sessionId}", [
+        Redis::hmset($this->metrics['redis_key'], [
             'status' => 'completed',
             'end_time' => $this->metrics['end_time'],
             'total_events' => $this->metrics['events_total'],
@@ -87,7 +92,7 @@ final class MetricsTracker
 
     public function markFailed(string $error): void
     {
-        Redis::hmset("sync_metrics:{$this->sessionId}", [
+        Redis::hmset($this->metrics['redis_key'], [
             'status' => 'failed',
             'error' => $error,
             'failed_at' => now()->toISOString(),
