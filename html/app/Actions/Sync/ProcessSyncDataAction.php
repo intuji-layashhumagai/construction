@@ -90,8 +90,27 @@ final class ProcessSyncDataAction
 
     private static function getExistingItem(SyncItem $item): ?SyncItem
     {
-        // todo: query from database to get actual items
-        return $item;
+        // Query for existing events with the same entity_id and type
+        $existingEvent = Event::where('entity_id', $item->entityId)
+            ->where('event_type', $item->type)
+            ->orderBy('server_created_at', 'desc')
+            ->first();
+
+        if ($existingEvent) {
+            return new SyncItem(
+                id: $existingEvent->id,
+                type: $existingEvent->event_type,
+                data: $existingEvent->event_data,
+                vectorClock: $existingEvent->vector_clock,
+                workerId: $existingEvent->worker_id,
+                deviceId: $existingEvent->device_id,
+                entityId: $existingEvent->entity_id,
+                timestamp: $existingEvent->server_created_at,
+                sequenceNumber: $existingEvent->sequence_number
+            );
+        }
+
+        return null;
     }
 
     private static function createSyncOperation(SyncItem $item): SyncOperation
