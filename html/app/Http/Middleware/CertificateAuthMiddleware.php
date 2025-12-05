@@ -117,7 +117,7 @@ class CertificateAuthMiddleware
                     'error' => 'Invalid recovery code',
                     'emergency_access_available' => false,
                 ], 401);
-            } elseif (!VerifyCertificateAction::checkEmergencyAccess($workerId)) {
+            } elseif (! VerifyCertificateAction::checkEmergencyAccess($workerId)) {
                 $response = response()->json([
                     'error' => 'Emergency access not allowed for this worker',
                     'emergency_access_available' => false,

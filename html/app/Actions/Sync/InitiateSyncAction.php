@@ -28,7 +28,7 @@ final class InitiateSyncAction
             'sessionId' => $session->id,
             'deviceId' => $deviceId,
             'direction' => $direction->value,
-            'workerId' =>$workerId
+            'workerId' => $workerId,
         ]);
 
         $storedSession = SyncSession::create([
