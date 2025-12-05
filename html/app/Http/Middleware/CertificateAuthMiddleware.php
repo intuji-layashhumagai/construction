@@ -99,63 +99,57 @@ class CertificateAuthMiddleware
         // Parse emergency certificate format: EMERGENCY:workerId:recoveryCode:timestamp
         $parts = explode(':', $certificatePem);
         if (count($parts) !== 4) {
-            return response()->json([
+            $response = response()->json([
                 'error' => 'Invalid emergency certificate format',
                 'emergency_access_available' => false,
             ], 401);
+        } else {
+            [, $workerId, $recoveryCode, $timestamp] = $parts;
+
+            // Validate timestamp (emergency certs expire after 1 hour)
+            if (time() - (int) $timestamp > 3600) {
+                $response = response()->json([
+                    'error' => 'Emergency certificate expired',
+                    'emergency_access_available' => false,
+                ], 401);
+            } elseif ($recoveryCode !== 'emergency-code') {
+                $response = response()->json([
+                    'error' => 'Invalid recovery code',
+                    'emergency_access_available' => false,
+                ], 401);
+            } elseif (!VerifyCertificateAction::checkEmergencyAccess($workerId)) {
+                $response = response()->json([
+                    'error' => 'Emergency access not allowed for this worker',
+                    'emergency_access_available' => false,
+                ], 401);
+            } else {
+                // Log emergency access
+                Log::warning('Emergency certificate access granted', [
+                    'worker_id' => $workerId,
+                    'device_id' => $deviceId,
+                    'recovery_code' => $recoveryCode,
+                    'timestamp' => $timestamp,
+                    'ip' => $request->ip(),
+                ]);
+
+                // Track emergency access
+                TrackDeviceUsageAction::handle(
+                    $workerId,
+                    $deviceId,
+                    'EMERGENCY-'.$recoveryCode
+                );
+
+                // Mark request as emergency access
+                $request->merge([
+                    'worker_id' => $workerId,
+                    'emergency_access' => true,
+                    'emergency_reason' => 'forgotten_credentials',
+                ]);
+
+                $response = $next($request);
+            }
         }
 
-        [, $workerId, $recoveryCode, $timestamp] = $parts;
-
-        // Validate timestamp (emergency certs expire after 1 hour)
-        if (time() - (int) $timestamp > 3600) {
-            return response()->json([
-                'error' => 'Emergency certificate expired',
-                'emergency_access_available' => false,
-            ], 401);
-        }
-
-        // Validate recovery code (in production, this would check against a database)
-        if ($recoveryCode !== 'emergency-code') {
-            return response()->json([
-                'error' => 'Invalid recovery code',
-                'emergency_access_available' => false,
-            ], 401);
-        }
-
-        // Check if emergency access is allowed for this worker
-        $emergencyAllowed = VerifyCertificateAction::checkEmergencyAccess($workerId);
-
-        if (! $emergencyAllowed) {
-            return response()->json([
-                'error' => 'Emergency access not allowed for this worker',
-                'emergency_access_available' => false,
-            ], 401);
-        }
-
-        // Log emergency access
-        Log::warning('Emergency certificate access granted', [
-            'worker_id' => $workerId,
-            'device_id' => $deviceId,
-            'recovery_code' => $recoveryCode,
-            'timestamp' => $timestamp,
-            'ip' => $request->ip(),
-        ]);
-
-        // Track emergency access
-        TrackDeviceUsageAction::handle(
-            $workerId,
-            $deviceId,
-            'EMERGENCY-'.$recoveryCode
-        );
-
-        // Mark request as emergency access
-        $request->merge([
-            'worker_id' => $workerId,
-            'emergency_access' => true,
-            'emergency_reason' => 'forgotten_credentials',
-        ]);
-
-        return $next($request);
+        return $response;
     }
 }
