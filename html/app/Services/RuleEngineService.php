@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 
 class RuleEngineService
 {
-
     /**
      * Validate an event against applicable business rules
      */
@@ -40,7 +39,7 @@ class RuleEngineService
 
         return [
             'isValid' => empty($violations),
-            'violations' => $violations
+            'violations' => $violations,
         ];
     }
 
@@ -79,7 +78,7 @@ class RuleEngineService
     private function evaluateRule(Rule $rule, object $event, array $context): RuleEvaluationResult
     {
         $data = $this->buildEvaluationData($event, $context);
-        
+
         try {
             $conditionMet = $this->evaluateConditions($rule->conditions, $data);
 
@@ -147,11 +146,11 @@ class RuleEngineService
     private function evaluateConditionTree(array $condition, array $data): bool
     {
         if (isset($condition['and'])) {
-            return collect($condition['and'])->every(fn($c) => $this->evaluateConditionTree($c, $data));
+            return collect($condition['and'])->every(fn ($c) => $this->evaluateConditionTree($c, $data));
         }
 
         if (isset($condition['or'])) {
-            return collect($condition['or'])->contains(fn($c) => $this->evaluateConditionTree($c, $data));
+            return collect($condition['or'])->contains(fn ($c) => $this->evaluateConditionTree($c, $data));
         }
 
         if (isset($condition['not'])) {
@@ -204,5 +203,4 @@ class RuleEngineService
                 return false;
         }
     }
-
 }
