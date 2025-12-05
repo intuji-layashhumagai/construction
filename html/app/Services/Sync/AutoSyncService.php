@@ -9,7 +9,6 @@ use App\Enums\SyncDirection;
 use App\Models\Device;
 use App\Models\Event;
 use App\Models\SyncSession;
-use App\Services\SyncScheduler;
 use Illuminate\Support\Facades\Log;
 
 class AutoSyncService

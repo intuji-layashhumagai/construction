@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\RuleSyncController;
 use App\Http\Controllers\SyncController;
 use App\Http\Middleware\CertificateAuthMiddleware;
 use Illuminate\Support\Facades\Route;
