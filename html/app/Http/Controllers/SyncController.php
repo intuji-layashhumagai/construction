@@ -8,9 +8,11 @@ use App\Actions\Sync\PrepareSyncSessionAction;
 use App\Actions\Sync\ProcessAndValidateEventsAction;
 use App\Enums\SyncType;
 use App\Http\Requests\SyncEventProtocolRequest;
+use App\Models\SyncSession;
 use App\Services\Sync\AutoSyncService;
 use App\Services\SyncResponseBuilder;
 use App\Services\SyncService;
+use Illuminate\Support\Facades\Redis;
 
 class SyncController extends Controller
 {
@@ -81,5 +83,63 @@ class SyncController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Check the status of an async sync operation
+     */
+    public function checkSyncStatus(string $sessionId)
+    {
+        $storedSession = SyncSession::find($sessionId);
+
+        if (! $storedSession) {
+            return response()->json([
+                'status' => 'not_found',
+                'session_id' => $sessionId,
+            ], 404);
+        }
+
+        // Get real-time metrics from Redis
+        $metrics = Redis::hgetall("sync_metrics:{$sessionId}");
+
+        $response = [
+            'session_id' => $sessionId,
+            'status' => $storedSession->status,
+            'device_id' => $storedSession->device_id,
+            'created_at' => $storedSession->created_at,
+            'last_activity' => $storedSession->last_activity_time,
+        ];
+
+        // Add job information if available
+        if ($storedSession->job_id) {
+            $response['job_id'] = $storedSession->job_id;
+        }
+
+        // Add real-time metrics if available
+        if (! empty($metrics)) {
+            $response['metrics'] = [
+                'events_total' => (int) ($metrics['events_total'] ?? 0),
+                'events_processed' => (int) ($metrics['events_processed'] ?? 0),
+                'chunks_processed' => (int) ($metrics['chunks_processed'] ?? 0),
+                'throughput_eps' => (float) ($metrics['throughput_eps'] ?? 0),
+                'start_time' => $metrics['start_time'] ?? null,
+                'updated_at' => $metrics['updated_at'] ?? null,
+            ];
+
+            // Calculate progress percentage
+            if ($response['metrics']['events_total'] > 0) {
+                $response['progress_percentage'] = round(
+                    ($response['metrics']['events_processed'] / $response['metrics']['events_total']) * 100,
+                    2
+                );
+            }
+        }
+
+        // Add error information if failed
+        if ($storedSession->status === 'failed' && $storedSession->error_message) {
+            $response['error'] = $storedSession->error_message;
+        }
+
+        return response()->json($response);
     }
 }
