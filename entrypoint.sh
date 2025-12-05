@@ -25,3 +25,15 @@ php artisan key:generate
 
 # Run migrations
 php artisan migrate
+
+# Clear any stale jobs from previous runs
+echo "Clearing stale queue jobs..."
+php artisan queue:clear
+php artisan queue:flush
+
+# Note: Redis data clearing is handled by Laravel's queue commands above
+# The queue:clear and queue:flush commands remove jobs from Redis queues
+
+# Start the queue worker in the background for async job processing
+echo "Starting queue worker..."
+php artisan queue:work --queue=high_performance_sync --sleep=1 --tries=3 --max-jobs=1000 --timeout=3600 >/dev/null 2>&1 &
