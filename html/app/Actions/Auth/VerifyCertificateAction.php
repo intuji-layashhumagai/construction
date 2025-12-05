@@ -30,6 +30,14 @@ final class VerifyCertificateAction
 
         $result['certificate_info'] = $certInfo;
 
+        // Check if worker exists in database
+        $workerId = $certInfo['subject']['OU'];
+        if (! Worker::where('id', $workerId)->exists()) {
+            $result['reason'] = 'Worker not found';
+
+            return $result;
+        }
+
         // Check expiration with grace period
         $now = time();
         $expiryTime = $certInfo['validTo_time_t'];
