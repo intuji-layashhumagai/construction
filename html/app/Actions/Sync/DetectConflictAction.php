@@ -4,9 +4,9 @@ namespace App\Actions\Sync;
 
 use App\Actions\Event\ProcessSingleEventAction;
 use App\DTOs\Conflict;
-use App\DTOs\ResolutionStrategy;
 use App\DTOs\SyncItem;
 use App\Enums\ConflictType;
+use App\Enums\ResolutionStrategy;
 
 final class DetectConflictAction
 {
@@ -29,7 +29,7 @@ final class DetectConflictAction
 
     private static function analyzeConflict(SyncItem $local, SyncItem $remote, ProcessSingleEventAction $vectorClock): ?Conflict
     {
-        $comparison = $vectorClock->compareVectorClocks($local->vectorClock, $remote->vectorClock);
+        $comparison = ProcessSingleEventAction::compareVectorClocks($local->vectorClock, $remote->vectorClock);
 
         if ($comparison === 'concurrent') {
             // todo: implement suggestion based on business rules
