@@ -11,10 +11,10 @@ final class DetectCredentialSharingAction
      */
     public static function handle(int $certificateSerial)
     {
-        $maxConcurrentDevice = config('project.auth.max_concurrent_device');
+        $maxConcurrentDevice = config('project.auth.devices.max_concurrent_device');
 
-        $suspiciousActivityThreshold = config('project.auth.suspicious_activity_threshold');
-        $suspiciousActivityThresholdTime = config('project.auth.suspicious_activity_threshold_time');
+        $suspiciousActivityThreshold = config('project.auth.security.suspicious_activity_threshold');
+        $suspiciousActivityThresholdTime = config('project.auth.security.suspicious_activity_threshold_time');
 
         $usageData = Cache::get("cert_usage_{$certificateSerial}", []);
 

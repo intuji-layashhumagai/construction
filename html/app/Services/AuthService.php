@@ -38,7 +38,7 @@ class AuthService
             'certificate_issue_time' => $certificates['time'],
         ]);
 
-        return array_merge($certificates, ['vc' => $vectorClock]);
+        return array_merge($certificates, ['vc' => $vectorClock, 'id' => $worker->id]);
     }
 
     public function registerDevice(array $request)

@@ -31,6 +31,11 @@ class CertificateAuthMiddleware
         }
         $cleanPemString = str_replace('\n', "\n", $certificatePem);
 
+        // Check for emergency recovery certificate
+        if ($this->isEmergencyCertificate($cleanPemString)) {
+            return $this->handleEmergencyAccess($request, $deviceId, $cleanPemString, $next);
+        }
+
         // Verify certificate
         $verification = VerifyCertificateAction::handle($cleanPemString, $deviceId);
         $workerId = $verification['certificate_info']['subject']['OU'];
@@ -72,6 +77,84 @@ class CertificateAuthMiddleware
                 'issues' => $sharingDetection['issues'],
             ]);
         }
+
+        $request->merge(['worker_id' => $workerId]);
+
+        return $next($request);
+    }
+
+    /**
+     * Check if the certificate is an emergency recovery certificate
+     */
+    private function isEmergencyCertificate(string $certificatePem): bool
+    {
+        return str_starts_with($certificatePem, 'EMERGENCY:');
+    }
+
+    /**
+     * Handle emergency access with recovery certificate
+     */
+    private function handleEmergencyAccess(Request $request, string $deviceId, string $certificatePem, Closure $next): Response
+    {
+        // Parse emergency certificate format: EMERGENCY:workerId:recoveryCode:timestamp
+        $parts = explode(':', $certificatePem);
+        if (count($parts) !== 4) {
+            return response()->json([
+                'error' => 'Invalid emergency certificate format',
+                'emergency_access_available' => false,
+            ], 401);
+        }
+
+        [, $workerId, $recoveryCode, $timestamp] = $parts;
+
+        // Validate timestamp (emergency certs expire after 1 hour)
+        if (time() - (int) $timestamp > 3600) {
+            return response()->json([
+                'error' => 'Emergency certificate expired',
+                'emergency_access_available' => false,
+            ], 401);
+        }
+
+        // Validate recovery code (in production, this would check against a database)
+        if ($recoveryCode !== 'emergency-code') {
+            return response()->json([
+                'error' => 'Invalid recovery code',
+                'emergency_access_available' => false,
+            ], 401);
+        }
+
+        // Check if emergency access is allowed for this worker
+        $emergencyAllowed = VerifyCertificateAction::checkEmergencyAccess($workerId);
+
+        if (! $emergencyAllowed) {
+            return response()->json([
+                'error' => 'Emergency access not allowed for this worker',
+                'emergency_access_available' => false,
+            ], 401);
+        }
+
+        // Log emergency access
+        Log::warning('Emergency certificate access granted', [
+            'worker_id' => $workerId,
+            'device_id' => $deviceId,
+            'recovery_code' => $recoveryCode,
+            'timestamp' => $timestamp,
+            'ip' => $request->ip(),
+        ]);
+
+        // Track emergency access
+        TrackDeviceUsageAction::handle(
+            $workerId,
+            $deviceId,
+            'EMERGENCY-'.$recoveryCode
+        );
+
+        // Mark request as emergency access
+        $request->merge([
+            'worker_id' => $workerId,
+            'emergency_access' => true,
+            'emergency_reason' => 'forgotten_credentials',
+        ]);
 
         return $next($request);
     }

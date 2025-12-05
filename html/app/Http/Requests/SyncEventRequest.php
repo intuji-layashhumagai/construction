@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\DataPriority;
 use App\Enums\EventType;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -27,6 +28,7 @@ class SyncEventRequest extends FormRequest
             'events.*.entity_type' => 'required|string|max:50',
             'events.*.entity_id' => 'required|uuid',
             'events.*.event_type' => 'required|string|in:'.implode(',', array_map(fn ($case) => $case->value, EventType::cases())),
+            'events.*.event_priority' => 'required|string|in:'.implode(',', array_map(fn ($case) => $case->value, DataPriority::cases())),
             'events.*.event_data' => 'required|array',
             'events.*.device_id' => 'required|uuid',
             'events.*.worker_id' => 'required|uuid',

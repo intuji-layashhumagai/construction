@@ -78,9 +78,19 @@ final class ProcessSingleEventAction
         return 'Concurrent';
     }
 
+    /**
+     * Increment device counter in vector clock.
+     */
+    public static function incrementClock(array $clock, string $deviceId): array
+    {
+        $newClock = $clock;
+        $newClock[$deviceId] = ($newClock[$deviceId] ?? 0) + 1;
+
+        return $newClock;
+    }
+
     public static function handle(array $incomingEventData): ?Event
     {
-        // todo: refactoring the vectorclock service to actions
         $entityId = $incomingEventData['entity_id'];
         $deviceClock = $incomingEventData['device_vector_clock'];
 
