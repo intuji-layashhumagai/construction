@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * High-performance sync job for processing large event batches at 10,000+ events/second
+ * High-performance sync job for processing large event batches
  *
  * Features:
  * - Parallel chunk processing with database connection pooling
