@@ -37,8 +37,8 @@ class SyncOperationImplementation implements SyncOperation
             'device_id' => $this->syncItem->deviceId,
             'worker_id' => $this->syncItem->workerId,
             'event_data' => json_encode($this->syncItem->data),
-            'sequence_number' => 1, // todo: to actual sync number
-            'vector_clock' => $this->syncItem->vectorClock,
+            'sequence_number' => $this->syncItem->sequenceNumber ?? 1,
+            'vector_clock' => $this->syncItem->merged_vector_clock ?? $this->syncItem->vectorClock,
             'server_created_at' => $this->syncItem->timestamp,
         ]);
     }
