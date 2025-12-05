@@ -27,12 +27,12 @@ class RuleEngineService
 
         foreach ($applicableRules as $rule) {
             $result = $this->evaluateRule($rule, $normalizedEvent, $context);
-            if (! $result->passes) {
+            if (! $result['passes']) {
                 $violations[] = [
                     'rule_id' => $rule->id,
                     'rule_name' => $rule->name,
-                    'message' => $result->message,
-                    'severity' => $result->severity,
+                    'message' => $result['message'],
+                    'severity' => $result['severity'],
                 ];
             }
         }
@@ -75,7 +75,7 @@ class RuleEngineService
     /**
      * Evaluate a single rule against an event
      */
-    private function evaluateRule(Rule $rule, object $event, array $context): RuleEvaluationResult
+    private function evaluateRule(Rule $rule, object $event, array $context): array
     {
         $data = $this->buildEvaluationData($event, $context);
 
@@ -83,15 +83,15 @@ class RuleEngineService
             $conditionMet = $this->evaluateConditions($rule->conditions, $data);
 
             if (! $conditionMet) {
-                return new RuleEvaluationResult(true, null, null); // Rule not triggered
+                return ['passes' => true, 'message' => null, 'severity' => null]; // Rule not triggered
             }
 
             // Check if rule should reject the event
             if (isset($rule->actions['reject']) && $rule->actions['reject']) {
-                return new RuleEvaluationResult(false, $rule->actions['message'] ?? 'Rule violation', 'error');
+                return ['passes' => false, 'message' => $rule->actions['message'] ?? 'Rule violation', 'severity' => 'error'];
             }
 
-            return new RuleEvaluationResult(true, null, null);
+            return ['passes' => true, 'message' => null, 'severity' => null];
 
         } catch (\Exception $e) {
             info($e);
@@ -102,7 +102,7 @@ class RuleEngineService
                 'error' => $e->getMessage(),
             ]);
 
-            return new RuleEvaluationResult(true, null, null); // Don't block on evaluation errors
+            return ['passes' => true, 'message' => null, 'severity' => null]; // Don't block on evaluation errors
         }
     }
 
