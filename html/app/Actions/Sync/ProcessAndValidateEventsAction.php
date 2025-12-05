@@ -62,13 +62,13 @@ final class ProcessAndValidateEventsAction
                 'sync_context' => true,
             ]);
 
-            if ($validationResult->isValid) {
+            if ($validationResult['isValid']) {
                 $validEvents[] = $eventData;
             } else {
                 $invalidEvents[] = $eventData;
                 $violations = array_merge($violations, array_map(function ($violation) use ($index) {
                     return ['event_index' => $index] + $violation;
-                }, $validationResult->getViolations()));
+                }, $validationResult['violations']));
             }
         }
 
