@@ -27,7 +27,7 @@ final class ProcessSyncDataAction
         try {
             // Enqueue all items with priority
             foreach ($syncData as $itemData) {
-                $item = SyncItem::fromArray($itemData);
+                $item = is_array($itemData) ? SyncItem::fromArray($itemData) : $itemData;
                 $priorityQueue->enqueue($item);
             }
 
@@ -36,7 +36,8 @@ final class ProcessSyncDataAction
                 $item = $priorityQueue->dequeue();
 
                 // Check for duplicates
-                if (DuplicateDetectorAction::isDuplicate($item)) {
+                $duplicateResults = DuplicateDetectorAction::isDuplicate($item);
+                if ($duplicateResults) {
                     $results['duplicates']++;
 
                     continue;
