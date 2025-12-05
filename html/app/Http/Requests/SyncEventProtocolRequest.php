@@ -30,7 +30,7 @@ class SyncEventProtocolRequest extends FormRequest
             'events.*.event_priority' => 'required|string|in:'.implode(',', array_map(fn ($case) => $case->value, DataPriority::cases())),
             'events.*.event_data' => 'array',
             'events.*.device_id' => 'required|uuid|exists:devices,id',
-            'events.*.worker_id' => 'required|uuid',
+            'events.*.worker_id' => 'required|uuid|exists:workers,id',
             'events.*.device_vector_clock' => 'required|array',
             'events.*.sequence_number' => 'required|integer|min:1',
             'events.*.direction' => 'required|string',
