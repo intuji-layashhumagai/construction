@@ -98,10 +98,16 @@ final class ProcessSyncDataAction
             ->first();
 
         if ($existingEvent) {
+            // Ensure event_data is an array, handling case where cast might not work
+            $eventData = $existingEvent->event_data;
+            if (is_string($eventData)) {
+                $eventData = json_decode($eventData, true) ?? [];
+            }
+
             return new SyncItem(
                 id: $existingEvent->id,
                 type: $existingEvent->event_type,
-                data: $existingEvent->event_data,
+                data: $eventData,
                 vectorClock: $existingEvent->vector_clock,
                 workerId: $existingEvent->worker_id,
                 deviceId: $existingEvent->device_id,
