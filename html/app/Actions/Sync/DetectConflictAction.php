@@ -10,7 +10,7 @@ use App\Enums\ResolutionStrategy;
 
 final class DetectConflictAction
 {
-    public static function handle(SyncItem $local, SyncItem $remote, ProcessSingleEventAction $vectorClock): array
+    public static function handle(SyncItem $local, ?SyncItem $remote, ProcessSingleEventAction $vectorClock): array
     {
         $conflicts = [];
         if (empty($local) || empty($remote)) {
