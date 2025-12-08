@@ -5,6 +5,7 @@ namespace App\Actions\Sync;
 use App\Actions\Event\ProcessSingleEventAction;
 use App\DTOs\SyncItem;
 use App\DTOs\SyncSession;
+use App\Models\Event;
 use App\Services\Sync\PriorityQueue;
 use App\Services\Sync\SyncOperation;
 use App\Services\Sync\SyncOperationImplementation;
@@ -37,7 +38,13 @@ final class ProcessSyncDataAction
 
                 // Check for duplicates
                 $duplicateResults = DuplicateDetectorAction::isDuplicate($item);
+
                 if ($duplicateResults) {
+                    Log::info('Event flagged as duplicate', [
+                        'entityId' => $item->entityId,
+                        'eventType' => $item->type,
+                        'sessionId' => $session->id,
+                    ]);
                     $results['duplicates']++;
 
                     continue;
@@ -56,6 +63,11 @@ final class ProcessSyncDataAction
                     // No conflicts detected
                     $operation = self::createSyncOperation($item);
                     SyncTransactionAction::addOperation($operation);
+                    Log::info('Event queued for storage', [
+                        'entityId' => $item->entityId,
+                        'eventType' => $item->type,
+                        'sessionId' => $session->id,
+                    ]);
                 }
 
                 $results['processed']++;
@@ -90,8 +102,33 @@ final class ProcessSyncDataAction
 
     private static function getExistingItem(SyncItem $item): ?SyncItem
     {
-        // todo: query from database to get actual items
-        return $item;
+        // Query for existing events with the same entity_id and type
+        $existingEvent = Event::where('entity_id', $item->entityId)
+            ->where('event_type', $item->type)
+            ->orderBy('server_created_at', 'desc')
+            ->first();
+
+        if ($existingEvent) {
+            // Ensure event_data is an array, handling case where cast might not work
+            $eventData = $existingEvent->event_data;
+            if (is_string($eventData)) {
+                $eventData = json_decode($eventData, true) ?? [];
+            }
+
+            return new SyncItem(
+                id: $existingEvent->id,
+                type: $existingEvent->event_type,
+                data: $eventData,
+                vectorClock: $existingEvent->vector_clock,
+                workerId: $existingEvent->worker_id,
+                deviceId: $existingEvent->device_id,
+                entityId: $existingEvent->entity_id,
+                timestamp: $existingEvent->server_created_at,
+                sequenceNumber: $existingEvent->sequence_number
+            );
+        }
+
+        return null;
     }
 
     private static function createSyncOperation(SyncItem $item): SyncOperation

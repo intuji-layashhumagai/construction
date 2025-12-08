@@ -18,6 +18,7 @@ class SyncItem
         public ?string $logicalId = null,
         public ?string $contentHash = null,
         public ?string $entityId = null,
+        public ?string $entityType = null,
         public ?string $userRole = null,
         public ?DateTime $timestamp = null,
         public DataPriority $priority = DataPriority::MEDIUM,
@@ -25,7 +26,8 @@ class SyncItem
         public bool $isRealTime = false,
         public ?array $conflictedFields = null,
         public ?string $mergeStatus = null,
-        public ?array $merged_vector_clock = null
+        public ?array $merged_vector_clock = null,
+        public ?int $sequenceNumber = null
     ) {
         $this->timestamp = $timestamp ?? now();
     }
@@ -49,6 +51,7 @@ class SyncItem
             'logical_id' => $this->logicalId,
             'content_hash' => $this->contentHash,
             'entity_id' => $this->entityId,
+            'entity_type' => $this->entityType,
             'user_role' => $this->userRole,
             'timestamp' => $this->timestamp->format('c'),
             'priority' => $this->priority->value,
@@ -71,6 +74,7 @@ class SyncItem
             logicalId: $data['logical_id'] ?? null,
             contentHash: $data['content_hash'] ?? null,
             entityId: $data['entity_id'] ?? null,
+            entityType: $data['entity_type'] ?? null,
             userRole: $data['user_role'] ?? null,
             timestamp: isset($data['timestamp']) ? new DateTime($data['timestamp']) : null,
             priority: DataPriority::from($data['priority'] ?? DataPriority::MEDIUM->value),
@@ -78,7 +82,8 @@ class SyncItem
             isRealTime: $data['is_real_time'] ?? false,
             conflictedFields: $data['conflicted_fields'] ?? null,
             mergeStatus: $data['merge_status'] ?? null,
-            merged_vector_clock: $data['merged_vector_clock'] ?? null
+            merged_vector_clock: $data['merged_vector_clock'] ?? null,
+            sequenceNumber: $data['sequence_number'] ?? null
         );
     }
 }

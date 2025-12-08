@@ -77,6 +77,9 @@ class HighPerformanceSyncJob implements ShouldQueue
     public function handle(): void
     {
         try {
+            // Mark session as processing at job start
+            $this->markSessionProcessing();
+
             // Initialize performance monitoring
             $this->metricsTracker->initialize();
 
@@ -290,12 +293,21 @@ class HighPerformanceSyncJob implements ShouldQueue
         $this->metricsTracker->finalize();
     }
 
+    protected function markSessionProcessing(): void
+    {
+        $storedSession = ModelsSyncSession::find($this->sessionId);
+        if ($storedSession) {
+            $storedSession->update(['status' => 'processing']);
+            Log::info('Marked session as processing in job', ['session_id' => $this->sessionId]);
+        }
+    }
+
     protected function markSessionCompleted(): void
     {
         $storedSession = ModelsSyncSession::find($this->sessionId);
         if ($storedSession) {
             $storedSession->update([
-                'status' => 'completed',
+                'status' => SyncPhase::COMPLETE->value,
                 'bytes_transferred' => $storedSession->bytes_transferred + strlen(json_encode($this->syncData)),
                 'last_activity_time' => now(),
                 'actual_events_processed' => $this->metricsTracker->getMetrics()['events_processed'],
