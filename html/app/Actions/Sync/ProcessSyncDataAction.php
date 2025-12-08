@@ -38,7 +38,13 @@ final class ProcessSyncDataAction
 
                 // Check for duplicates
                 $duplicateResults = DuplicateDetectorAction::isDuplicate($item);
+
                 if ($duplicateResults) {
+                    Log::info('Event flagged as duplicate', [
+                        'entityId' => $item->entityId,
+                        'eventType' => $item->type,
+                        'sessionId' => $session->id,
+                    ]);
                     $results['duplicates']++;
 
                     continue;
@@ -57,6 +63,11 @@ final class ProcessSyncDataAction
                     // No conflicts detected
                     $operation = self::createSyncOperation($item);
                     SyncTransactionAction::addOperation($operation);
+                    Log::info('Event queued for storage', [
+                        'entityId' => $item->entityId,
+                        'eventType' => $item->type,
+                        'sessionId' => $session->id,
+                    ]);
                 }
 
                 $results['processed']++;
