@@ -3,8 +3,8 @@
 namespace App\Actions\Sync;
 
 use App\DTOs\SyncItem;
-use App\Models\Event;
 use App\Services\Sync\BloomFilter;
+use Illuminate\Support\Facades\DB;
 
 final class DuplicateDetectorAction
 {
@@ -25,6 +25,7 @@ final class DuplicateDetectorAction
             self::init();
         }
         $itemId = self::generateItemId($item);
+        $jsonData = json_encode($item->data);
 
         // Quick check with bloom filter
         if (BloomFilterAction::possiblyContains(self::$bloomFilter, $itemId)) {
@@ -33,11 +34,20 @@ final class DuplicateDetectorAction
                 return true;
             }
 
-            // Check database for existing event with same content
-            $existingEvent = Event::where('entity_id', $item->entityId)
-                ->where('event_type', $item->type)
-                ->where('event_data', json_encode($item->data))
-                ->exists();
+            // Check database for existing event with same content using JSONB containment
+            $existingEvent = DB::selectOne('
+                SELECT COUNT(*) > 0 as exists
+                FROM events
+                WHERE entity_id = ?
+                AND event_type = ?
+                AND event_data @> ?::jsonb
+                AND ?::jsonb @> event_data
+            ', [
+                $item->entityId,
+                $item->type,
+                $jsonData,
+                $jsonData,
+            ])->exists;
 
             if ($existingEvent) {
                 return true;
