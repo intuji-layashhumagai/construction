@@ -31,7 +31,7 @@ class SyncOperationImplementation implements SyncOperation
         ]);
 
         Event::create([
-            'entity_type' => $this->syncItem->type,
+            'entity_type' => $this->syncItem->entityType ?? 'unknown',
             'entity_id' => $this->syncItem->entityId,
             'event_type' => $this->syncItem->type,
             'device_id' => $this->syncItem->deviceId,
