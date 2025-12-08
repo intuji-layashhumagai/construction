@@ -75,6 +75,32 @@ The system is designed with the following components:
 - **csm-redis-insight**: Web UI for Redis monitoring and management
 
 
+## Testing
+
+End-to-end tests are available in a separate repository to validate the system's distributed scenarios:
+
+### Playwright Test Suite
+
+```bash
+# Clone the test repository
+git clone https://github.com/intuji-layashhumagai/construction-playwright.git
+cd construction-playwright
+
+# Start the test environment
+./start.sh
+
+# Run tests
+./app.sh test
+```
+
+The test suite covers:
+- Event sourcing and vector clock implementation
+- Distributed identity management
+- Business rule engine validation
+- Synchronization protocol testing
+
+See the [Playwright README](https://github.com/intuji-layashhumagai/construction-playwright/blob/main/README.md) for detailed setup and usage instructions.
+
 ## Development
 
 The application uses volume mounting for live code reloading during development. Composer dependencies are installed during the Docker build process.
