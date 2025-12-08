@@ -26,7 +26,9 @@ class SyncOperationImplementation implements SyncOperation
     {
         Log::debug('Processing sync item', [
             'itemId' => $this->syncItem->id,
-            'itemType' => $this->syncItem->type,
+            'entityType' => $this->syncItem->entityType,
+            'eventType' => $this->syncItem->type,
+            'entityId' => $this->syncItem->entityId,
             'timestamp' => $this->syncItem->timestamp->format('c'),
         ]);
 
