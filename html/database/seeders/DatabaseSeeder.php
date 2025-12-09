@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            EntityTypeSeeder::class, // Defines entity types, event types, and relationships
             WorkerSeeder::class,
             DeviceSeeder::class,
             RuleSeeder::class,
