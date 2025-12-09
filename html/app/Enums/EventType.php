@@ -16,4 +16,9 @@ enum EventType: string
     case STATUS_UPDATED = 'status_updated';
     case BUDGET_UPDATED = 'budget_updated';
     case STOCK_RECEIVED = 'stock_received';
+    case WORK_SESSION_STARTED = 'work_session_started';
+    case WORK_LOGGED = 'work_logged';
+    case DEVICE_HANDOVER = 'device_handover';
+    case WORK_SESSION_ENDED = 'work_session_ended';
+    case SESSION_MERGED = 'session_merged';
 }
