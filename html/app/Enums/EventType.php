@@ -21,4 +21,6 @@ enum EventType: string
     case DEVICE_HANDOVER = 'device_handover';
     case WORK_SESSION_ENDED = 'work_session_ended';
     case SESSION_MERGED = 'session_merged';
+    case WORKER_LOGGED_IN = 'worker_logged_in';
+    case WORKER_LOGGED_OUT = 'worker_logged_out';
 }
