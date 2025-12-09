@@ -2,56 +2,47 @@
 
 namespace App\Actions\Auth;
 
+use App\Actions\Event\ProcessSingleEventAction;
 use App\Models\Event;
 
 final class GenerateVectorClock
 {
     /**
-     * Generate a new vector clock for the system.
+     * Generate a vector clock for a worker's session based on their event history.
      *
-     * This method creates a vector clock by taking the latest event's vector clock
-     * and incrementing all server dimensions, then merging to preserve other device knowledge.
+     * @param  string  $workerId  The worker's ID
+     * @param  string  $deviceId  The device ID performing the action
+     * @return array Vector clock for this operation
      */
-    public static function handle(): array
+    public static function handle(string $workerId, string $deviceId): array
     {
-        // Get the list of cluster servers from configuration
-        $clusterServerIds = config('project.servers', ['Server-A', 'Server-B', 'Server-C']);
-
-        // Retrieve the vector clock from the most recent event
-        $latestEvent = Event::orderBy('server_created_at', 'desc')
+        // Get the latest vector clock for this worker's session
+        $latestEvent = Event::where('entity_type', 'worker_session')
+            ->where('entity_id', $workerId)
+            ->orderBy('server_created_at', 'desc')
             ->orderBy('sequence_number', 'desc')
             ->select('vector_clock')
             ->first();
 
-        // Start with the latest vector clock or an empty array if no events exist
-        $latestVectorClock = $latestEvent ? $latestEvent->vector_clock : [];
+        // Start with the latest vector clock or empty array for new workers
+        $baseVectorClock = $latestEvent ? $latestEvent->vector_clock : [];
 
-        // Initialize the new vector clock with the latest values
-        $initialVectorClock = $latestVectorClock;
-
-        // Increment all server dimensions to reflect the current operation
-        foreach ($clusterServerIds as $serverId) {
-            $initialVectorClock[$serverId] = ($initialVectorClock[$serverId] ?? 0) + 1;
-        }
-
-        // Merge to ensure all device dimensions are saved with maximum values
-        $initialVectorClock = self::merge($latestVectorClock, $initialVectorClock);
-
-        return $initialVectorClock;
+        // Increment this device's counter using the proven ProcessSingleEventAction method
+        return ProcessSingleEventAction::incrementClock($baseVectorClock, $deviceId);
     }
 
     /**
-     * Merge two vector clocks using the maximum value for each dimension.
+     * Get the next sequence number for a worker's session events.
+     *
+     * @param  string  $workerId  The worker's ID
+     * @return int Next sequence number
      */
-    private static function merge(array $vc1, array $vc2): array
+    public static function getNextSequenceNumber(string $workerId): int
     {
-        $merged = [];
-        $allDeviceIds = array_keys(array_merge($vc1, $vc2));
+        $latestSequence = Event::where('entity_type', 'worker_session')
+            ->where('entity_id', $workerId)
+            ->max('sequence_number') ?? 0;
 
-        foreach ($allDeviceIds as $deviceId) {
-            $merged[$deviceId] = max($vc1[$deviceId] ?? 0, $vc2[$deviceId] ?? 0);
-        }
-
-        return $merged;
+        return $latestSequence + 1;
     }
 }
