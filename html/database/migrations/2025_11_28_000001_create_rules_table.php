@@ -12,8 +12,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('version', 20)->default('1.0.0');
-            $table->string('entity_type', 50);
-            $table->string('event_type', 50);
+            $table->string('entity_type', 50)->nullable();
+            $table->string('event_type', 50)->nullable();
             $table->jsonb('conditions');
             $table->jsonb('actions');
             $table->integer('priority')->default(0);
