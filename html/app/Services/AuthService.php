@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Actions\Auth\GenerateCertificateAction;
+use App\Actions\Auth\GenerateOfflineContextAction;
 use App\Actions\Auth\GenerateVectorClock;
 use App\Actions\Auth\StoreDeviceAction;
 use App\Actions\Worker\GetSingleWorkerAction;
@@ -29,6 +30,9 @@ class AuthService
         $certificates = GenerateCertificateAction::handle($worker);
         $vectorClock = GenerateVectorClock::handle();
 
+        // Get cached offline context (shared across all devices)
+        $offlineContext = GenerateOfflineContextAction::getCached();
+
         WorkerDevice::create([
             'worker_id' => $worker->id,
             'device_id' => $request['deviceId'],
@@ -38,7 +42,11 @@ class AuthService
             'certificate_issue_time' => $certificates['time'],
         ]);
 
-        return array_merge($certificates, ['vc' => $vectorClock, 'id' => $worker->id]);
+        return array_merge($certificates, [
+            'vc' => $vectorClock,
+            'id' => $worker->id,
+            'offline_context' => $offlineContext,
+        ]);
     }
 
     public function registerDevice(array $request)
