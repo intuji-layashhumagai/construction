@@ -71,7 +71,7 @@ class RuleSeeder extends Seeder
                         'onsite_percentage' => 35,
                         'later_percentage' => 65,
                         'discount_percentage' => 15,
-                    ]
+                    ],
                 ],
                 'priority' => 1,
                 'is_active' => true,
@@ -90,7 +90,7 @@ class RuleSeeder extends Seeder
                         'worker',
                         'supervisor',
                         'manager',
-                    ]
+                    ],
                 ],
                 'priority' => 1,
                 'is_active' => true,
@@ -109,7 +109,7 @@ class RuleSeeder extends Seeder
                         'default_strategy' => 'prioritize_supervisor',
                         'tie_breaker' => 'most_recent',
                         'max_conflict_age_days' => 30,
-                    ]
+                    ],
                 ],
                 'priority' => 1,
                 'is_active' => true,
@@ -131,7 +131,7 @@ class RuleSeeder extends Seeder
                         'max_events_per_sync' => 1000,
                         'duplicate_detection_window' => '24 hours',
                         'validation_timeout' => '30 seconds',
-                    ]
+                    ],
                 ],
                 'priority' => 1,
                 'is_active' => true,
@@ -150,7 +150,7 @@ class RuleSeeder extends Seeder
                         'data_isolation' => true,
                         'session_continuation' => true,
                         'conflict_detection' => true,
-                    ]
+                    ],
                 ],
                 'priority' => 1,
                 'is_active' => true,
@@ -169,7 +169,7 @@ class RuleSeeder extends Seeder
                         'max_offline_days' => 30,
                         'sync_retry_attempts' => 3,
                         'bandwidth_optimization' => true,
-                    ]
+                    ],
                 ],
                 'priority' => 1,
                 'is_active' => true,
