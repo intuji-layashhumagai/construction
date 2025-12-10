@@ -44,6 +44,12 @@ class EntityTypeSeeder extends Seeder
             ['event_type' => 'DEVICE_HANDOVER', 'name' => 'Device Handover', 'description' => 'Device is handed over between workers'],
             ['event_type' => 'WORK_SESSION_ENDED', 'name' => 'Work Session Ended', 'description' => 'A work session concludes'],
             ['event_type' => 'SESSION_MERGED', 'name' => 'Session Merged', 'description' => 'Multiple sessions are merged'],
+            ['event_type' => 'TIMESHEET_MODIFIED', 'name' => 'Timesheet Modified', 'description' => 'Supervisor/manager modifies hours'],
+            ['event_type' => 'TIMESHEET_APPROVED', 'name' => 'Timesheet Approved', 'description' => 'Approval at any level'],
+            ['event_type' => 'TIMESHEET_REJECTED', 'name' => 'Timesheet Rejected', 'description' => 'Rejection with reason'],
+            ['event_type' => 'TIMESHEET_DISPUTED', 'name' => 'Timesheet Disputed', 'description' => 'Worker disputes modification'],
+            ['event_type' => 'TIMESHEET_ESCALATED', 'name' => 'Timesheet Escalated', 'description' => 'Escalated to higher authority'],
+            ['event_type' => 'APPROVAL_WORKFLOW_STARTED', 'name' => 'Approval Workflow Started', 'description' => 'Workflow initiation'],
         ];
 
         foreach ($eventTypes as $eventType) {
