@@ -23,4 +23,10 @@ enum EventType: string
     case SESSION_MERGED = 'session_merged';
     case WORKER_LOGGED_IN = 'worker_logged_in';
     case WORKER_LOGGED_OUT = 'worker_logged_out';
+    case TIMESHEET_MODIFIED = 'timesheet_modified';
+    case TIMESHEET_APPROVED = 'timesheet_approved';
+    case TIMESHEET_REJECTED = 'timesheet_rejected';
+    case TIMESHEET_DISPUTED = 'timesheet_disputed';
+    case TIMESHEET_ESCALATED = 'timesheet_escalated';
+    case APPROVAL_WORKFLOW_STARTED = 'approval_workflow_started';
 }
