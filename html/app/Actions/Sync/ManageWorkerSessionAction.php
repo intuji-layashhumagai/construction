@@ -2,7 +2,6 @@
 
 namespace App\Actions\Sync;
 
-use App\DTOs\QuarantineContext;
 use App\DTOs\SyncItem;
 use App\Enums\EventType;
 use App\Models\Event;
