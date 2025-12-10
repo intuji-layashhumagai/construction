@@ -80,7 +80,7 @@ final class ManageWorkerSessionAction
                 $mergedData['last_merge_timestamp'] = now()->toISOString();
 
                 // Update the existing event
-                $existing->event_data = json_encode($mergedData);
+                $existing->event_data = $mergedData;
                 $existing->save();
 
                 Log::info('Merged worker session hours', [
@@ -168,7 +168,7 @@ final class ManageWorkerSessionAction
                 $mergedData['last_merge_timestamp'] = now()->toISOString();
 
                 // Update the existing event
-                $existing->event_data = json_encode($mergedData);
+                $existing->event_data = $mergedData;
                 $existing->save();
 
                 Log::info('Merged worker session break', [
