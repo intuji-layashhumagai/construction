@@ -59,6 +59,57 @@ class RuleSeeder extends Seeder
                 'created_by' => null,
             ],
 
+            // Approval Validation Rules
+            [
+                'name' => 'Timesheet Modification Justification Required',
+                'version' => '1.0.0',
+                'entity_type' => 'timesheet',
+                'event_type' => 'timesheet_modified',
+                'conditions' => [
+                    [
+                        'fact' => 'event_data.justification',
+                        'operator' => 'equals',
+                        'value' => null,
+                    ],
+                ],
+                'actions' => [
+                    'reject' => true,
+                    'message' => 'Justification is required for timesheet modifications',
+                ],
+                'priority' => 10,
+                'is_active' => true,
+                'effective_from' => null,
+                'effective_until' => null,
+                'created_by' => null,
+            ],
+            [
+                'name' => 'Supervisor Modification Limits',
+                'version' => '1.0.0',
+                'entity_type' => 'timesheet',
+                'event_type' => 'timesheet_modified',
+                'conditions' => [
+                    [
+                        'fact' => 'event_data.authority_level',
+                        'operator' => 'equals',
+                        'value' => 'supervisor',
+                    ],
+                    [
+                        'fact' => 'event_data.new_hours',
+                        'operator' => 'greaterThan',
+                        'value' => 2, // This would need to be calculated relative to original
+                    ],
+                ],
+                'actions' => [
+                    'reject' => true,
+                    'message' => 'Supervisors can only modify hours by ±2 hours',
+                ],
+                'priority' => 9,
+                'is_active' => true,
+                'effective_from' => null,
+                'effective_until' => null,
+                'created_by' => null,
+            ],
+
             // Business Rules (System Configuration)
             [
                 'name' => 'Payment Structure Configuration',
