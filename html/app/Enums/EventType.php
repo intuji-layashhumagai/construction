@@ -29,4 +29,9 @@ enum EventType: string
     case TIMESHEET_DISPUTED = 'timesheet_disputed';
     case TIMESHEET_ESCALATED = 'timesheet_escalated';
     case APPROVAL_WORKFLOW_STARTED = 'approval_workflow_started';
+    case INVENTORY_TRANSFER_INITIATED = 'inventory_transfer_initiated';
+    case INVENTORY_TRANSFER_RECEIVED = 'inventory_transfer_received';
+    case INVENTORY_TRANSFER_CANCELLED = 'inventory_transfer_cancelled';
+    case INVENTORY_TRANSFER_DISPUTED = 'inventory_transfer_disputed';
+    case INVENTORY_TRANSFER_CHAIN_VALIDATED = 'inventory_transfer_chain_validated';
 }
