@@ -3,6 +3,7 @@
 namespace App\DTOs;
 
 use App\Enums\ConflictType;
+use App\Enums\ResolutionStrategy;
 
 class Conflict
 {

@@ -2,7 +2,9 @@
 
 namespace App\Actions\Event;
 
+use App\Enums\EventType;
 use App\Models\Event;
+use App\Services\ApprovalService;
 
 /**
  * Process a single event from a device, handling causality and conflicts.
@@ -94,6 +96,11 @@ final class ProcessSingleEventAction
         $entityId = $incomingEventData['entity_id'];
         $deviceClock = $incomingEventData['device_vector_clock'];
 
+        // Validate approval-related events
+        if (! self::validateApprovalEvent($incomingEventData)) {
+            return null; // Invalid event, do not process
+        }
+
         // Find the most recent event for this entity to get the current authoritative clock
         $mostRecentEvent = Event::where('entity_id', $entityId)
             ->orderBy('server_created_at', 'desc')
@@ -121,5 +128,44 @@ final class ProcessSingleEventAction
         }
 
         return $result;
+    }
+
+    /**
+     * Validate approval-related events
+     */
+    private static function validateApprovalEvent(array $eventData): bool
+    {
+        $eventType = EventType::tryFrom($eventData['event_type']);
+
+        if ($eventType === EventType::TIMESHEET_MODIFIED) {
+            // Check justification is provided
+            $justification = $eventData['event_data']['justification'] ?? '';
+            if (empty($justification)) {
+                return false;
+            }
+
+            // Get current state to validate authority and limits
+            $currentState = Event::replayEventSequence('timesheet', $eventData['entity_id']);
+            $authorityLevel = $eventData['event_data']['authority_level'] ?? 'worker';
+            $newHours = $eventData['event_data']['new_hours'] ?? 0;
+            $currentHours = $currentState['hours_logged'] ?? 0;
+
+            $approvalService = new ApprovalService;
+
+            return $approvalService->validateModificationLimits($authorityLevel, $currentHours, $newHours);
+        }
+
+        // For other approval events, basic validation
+        if (in_array($eventType, [
+            EventType::TIMESHEET_APPROVED,
+            EventType::TIMESHEET_REJECTED,
+            EventType::TIMESHEET_DISPUTED,
+            EventType::TIMESHEET_ESCALATED,
+        ])) {
+            // Could add more validation here
+            return true;
+        }
+
+        return true; // Non-approval events pass
     }
 }

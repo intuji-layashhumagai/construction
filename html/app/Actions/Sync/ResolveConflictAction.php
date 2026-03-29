@@ -3,15 +3,21 @@
 namespace App\Actions\Sync;
 
 use App\DTOs\Conflict;
-use App\DTOs\ResolutionStrategy;
 use App\DTOs\SyncItem;
 use App\Enums\ConflictType;
+use App\Enums\ResolutionStrategy;
+use App\Services\Sync\TimesheetConflictResolver;
 use App\Services\Sync\UnresolvedConflictException;
 
 final class ResolveConflictAction
 {
     public static function handle(Conflict $conflict): SyncItem
     {
+        // Special handling for timesheet conflicts
+        if (self::isTimesheetConflict($conflict)) {
+            return TimesheetConflictResolver::resolveTimesheetConflict($conflict);
+        }
+
         return match ($conflict->type) {
             ConflictType::CONCURRENT_MODIFICATION => self::resolveConcurrent($conflict),
             ConflictType::DUPLICATE_DATA => self::resolveDuplicate($conflict),
@@ -98,5 +104,11 @@ final class ResolveConflictAction
         }
 
         return $score;
+    }
+
+    private static function isTimesheetConflict(Conflict $conflict): bool
+    {
+        return ($conflict->local->entityType ?? '') === 'timesheet' ||
+               ($conflict->remote->entityType ?? '') === 'timesheet';
     }
 }

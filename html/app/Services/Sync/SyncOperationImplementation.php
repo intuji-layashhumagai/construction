@@ -38,7 +38,7 @@ class SyncOperationImplementation implements SyncOperation
             'event_type' => $this->syncItem->type,
             'device_id' => $this->syncItem->deviceId,
             'worker_id' => $this->syncItem->workerId,
-            'event_data' => json_encode($this->syncItem->data),
+            'event_data' => $this->syncItem->data,
             'sequence_number' => $this->syncItem->sequenceNumber ?? 1,
             'vector_clock' => $this->syncItem->merged_vector_clock ?? $this->syncItem->vectorClock,
             'server_created_at' => $this->syncItem->timestamp,

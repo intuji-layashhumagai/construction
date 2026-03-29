@@ -64,9 +64,15 @@ class SyncItem
 
     public static function fromArray(array $data): self
     {
+        $eventType = $data['event_type'] ?? '';
+        $entityType = $data['entity_type'] ?? '';
+
+        // Assign higher priority to approval-related events
+        $priority = self::determineEventPriority($eventType, $entityType, $data);
+
         return new self(
             id: $data['id'] ?? Str::uuid(),
-            type: $data['event_type'],
+            type: $eventType,
             data: $data['event_data'],
             vectorClock: $data['vector_clock'] ?? [],
             workerId: $data['worker_id'] ?? null,
@@ -74,10 +80,10 @@ class SyncItem
             logicalId: $data['logical_id'] ?? null,
             contentHash: $data['content_hash'] ?? null,
             entityId: $data['entity_id'] ?? null,
-            entityType: $data['entity_type'] ?? null,
+            entityType: $entityType,
             userRole: $data['user_role'] ?? null,
             timestamp: isset($data['timestamp']) ? new DateTime($data['timestamp']) : null,
-            priority: DataPriority::from($data['priority'] ?? DataPriority::MEDIUM->value),
+            priority: $priority,
             isSafetyCritical: $data['is_safety_critical'] ?? false,
             isRealTime: $data['is_real_time'] ?? false,
             conflictedFields: $data['conflicted_fields'] ?? null,
@@ -85,5 +91,32 @@ class SyncItem
             merged_vector_clock: $data['merged_vector_clock'] ?? null,
             sequenceNumber: $data['sequence_number'] ?? null
         );
+    }
+
+    /**
+     * Determine priority based on event type and content
+     */
+    private static function determineEventPriority(string $eventType, string $entityType, array $data): DataPriority
+    {
+        // Approval-related events get high priority
+        $approvalEvents = [
+            'timesheet_modified',
+            'timesheet_approved',
+            'timesheet_rejected',
+            'timesheet_disputed',
+            'timesheet_escalated',
+            'approval_workflow_started',
+        ];
+
+        if ($entityType === 'timesheet' && in_array($eventType, $approvalEvents)) {
+            return DataPriority::HIGH;
+        }
+
+        // Check if explicitly set
+        if (isset($data['priority'])) {
+            return DataPriority::from($data['priority']);
+        }
+
+        return DataPriority::MEDIUM;
     }
 }

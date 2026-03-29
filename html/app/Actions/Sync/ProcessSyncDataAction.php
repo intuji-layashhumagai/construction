@@ -13,8 +13,11 @@ use Illuminate\Support\Facades\Log;
 
 final class ProcessSyncDataAction
 {
+    private static array $pendingMerges = [];
+
     public static function handle(SyncSession $session, array $syncData): array
     {
+        self::$pendingMerges = []; // Reset for this batch
         SyncTransactionAction::begin();
 
         $results = [
@@ -40,6 +43,8 @@ final class ProcessSyncDataAction
                 $duplicateResults = DuplicateDetectorAction::isDuplicate($item);
 
                 if ($duplicateResults) {
+                    // Handle merging for specific duplicate types
+                    self::$pendingMerges[] = $item;
                     Log::info('Event flagged as duplicate', [
                         'entityId' => $item->entityId,
                         'eventType' => $item->type,
@@ -75,6 +80,7 @@ final class ProcessSyncDataAction
             }
 
             SyncTransactionAction::commit();
+            self::processPendingMerges();
 
             // Create checkpoint
             $checkpoint = CreateCheckpointAction::handle($session);
@@ -88,6 +94,7 @@ final class ProcessSyncDataAction
             ]);
 
         } catch (\Exception $e) {
+            info(['ERROR', $e]);
             SyncTransactionAction::rollback();
             $results['errors']++;
             Log::error('Sync processing failed', [
@@ -134,5 +141,13 @@ final class ProcessSyncDataAction
     private static function createSyncOperation(SyncItem $item): SyncOperation
     {
         return new SyncOperationImplementation($item);
+    }
+
+    private static function processPendingMerges(): void
+    {
+        foreach (self::$pendingMerges as $duplicateItem) {
+            ManageWorkerSessionAction::handle($duplicateItem);
+        }
+        self::$pendingMerges = [];
     }
 }
